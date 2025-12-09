@@ -6,7 +6,7 @@ export interface Point {
 }
 
 export interface TabulatedFunction {
-  id?: number
+  id?: string
   name: string
   points: Point[]
   factoryType: "array" | "linkedList"

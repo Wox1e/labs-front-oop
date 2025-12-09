@@ -77,23 +77,22 @@ export function CreateFromArray({ onCreated, trigger }: CreateFromArrayProps) {
       const xValues = sortedByX.map(point => point.x)
       const yValues = sortedByX.map(point => point.y)
 
-      // Отправляем запрос на бэкенд
-      const response = await api.createFromArray(
-        name.trim(),
-        xValues,
-        yValues,
-        settings.factoryType
-      )
+
       
       // Создаем объект функции для локального состояния
       const func: TabulatedFunction = {
-        id: response.functionId || response.id, // Адаптируйте под ответ API
         name: name.trim(),
         points: sortedByX,
         factoryType: settings.factoryType,
         isInsertable: settings.factoryType === "linkedList",
         isRemovable: settings.factoryType === "linkedList",
       }
+
+
+      // Отправляем запрос на бэкенд
+      const response = await api.createFromArray(func)
+      func.id = response.id
+
 
       // Вызываем колбэк с созданной функцией
       onCreated(func)

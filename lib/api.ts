@@ -53,12 +53,8 @@ class ApiClient {
     const token = this.getToken()
     const headers: HeadersInit = {
       "Content-Type": "application/json",
+      "X-API-KEY": "my-secret-key",
       ...options.headers,
-    }
-
-    // Добавляем X-API-KEY для /users/<username>
-    if (/^\/users\/[^/]+$/.test(endpoint)) {
-      headers["X-API-KEY"] = "my-secret-key"
     }
 
     if (token) {
@@ -190,15 +186,27 @@ class ApiClient {
     return result.data
   }
 
-  async createFunction(name: string, type: string) {
+  async createFunction(func: TabulatedFunction) {
     const result = await this.request<{
       status: string
       created: boolean
       id: string
     }>("/functions/", {
       method: "POST",
-      body: JSON.stringify({ name, type }),
+      body: JSON.stringify({ name:func.name, type:func.factoryType }),
     })
+
+      func.points.map(async (point_pair) => {        
+        await this.request<{
+          status: string
+          created: boolean
+          id: string
+        }>("/points/", {
+          method: "POST",
+          body: JSON.stringify({ function_id:result.id, x_value:point_pair.x, y_value:point_pair.y }),
+        })
+      })
+
 
     return result
   }
@@ -236,17 +244,24 @@ class ApiClient {
 
   // Методы для работы с функциями (создание из массивов и мат. функций)
   // Эти эндпоинты должны быть реализованы на бэкенде
-  async createFromArray(name: string, xValues: number[], yValues: number[], factoryType: string) {
-    // Создаем функцию
-    const funcResult = await this.createFunction(name, factoryType)
-    const functionId = funcResult.id
-
-    // Добавляем точки
-    for (let i = 0; i < xValues.length; i++) {
-      await this.createPoint(functionId, xValues[i], yValues[i])
+  async createFromArray(func: TabulatedFunction) {
+    // Убеждаемся что name и points есть
+    if (!func.name || !func.points) {
+      throw new Error("Некорректные данные функции")
     }
-
-    return { id: functionId, name, type: factoryType }
+    
+    // Создаем функцию и получаем ID от сервера
+    const funcResult = await this.createFunction(func)
+    
+    // Возвращаем созданную функцию с ID
+    return {
+      id: funcResult.id,
+      name: func.name,
+      points: func.points,
+      factoryType: func.factoryType,
+      isInsertable: func.factoryType === "linkedList",
+      isRemovable: func.factoryType === "linkedList"
+    }
   }
 
   async createFromMathFunction(
@@ -255,20 +270,28 @@ class ApiClient {
     from: number,
     to: number,
     pointsCount: number,
-    factoryType: string,
+    factoryType: "array" | "linkedList",
   ) {
     // Генерируем точки на клиенте
     const step = (to - from) / (pointsCount - 1)
-    const xValues: number[] = []
-    const yValues: number[] = []
-
+    const points = []
+  
     for (let i = 0; i < pointsCount; i++) {
       const x = from + i * step
-      xValues.push(x)
-      yValues.push(this.evaluateMathFunction(mathFunctionName, x))
+      const y = this.evaluateMathFunction(mathFunctionName, x)
+      points.push({ x, y }) // Создаем объект точки и добавляем в массив
     }
-
-    return this.createFromArray(name, xValues, yValues, factoryType)
+  
+    // Создаем объект TabulatedFunction
+    const tabulatedFunc: TabulatedFunction = {
+      name: name,
+      points: points, // Используем созданный массив точек
+      factoryType: factoryType,
+      isInsertable: factoryType === "linkedList",
+      isRemovable: factoryType === "linkedList"
+    }
+    
+    return this.createFromArray(tabulatedFunc)
   }
 
   private evaluateMathFunction(funcName: string, x: number): number {
