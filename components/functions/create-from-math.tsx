@@ -19,6 +19,8 @@ import { useSettings } from "@/lib/settings-context"
 import { toast } from "sonner"
 import { Loader2, FunctionSquare } from "lucide-react"
 import type { Point, TabulatedFunction } from "@/lib/types"
+import { api } from "@/lib/api" // Импортируем API
+
 
 // Available math functions (sorted by priority, then alphabetically)
 const mathFunctions = [
@@ -100,6 +102,9 @@ export function CreateFromMath({ onCreated, trigger }: CreateFromMathProps) {
         isInsertable: settings.factoryType === "linkedList",
         isRemovable: settings.factoryType === "linkedList",
       }
+
+      const response = await api.createFromArray(func)
+      func.id = response.id
 
       onCreated(func)
       toast.success("Функция создана успешно")
