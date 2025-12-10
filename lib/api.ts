@@ -155,8 +155,13 @@ class ApiClient {
     // Используем map и Promise.all для параллельной загрузки точек
     const functionsList: TabulatedFunction[] = await Promise.all(
       result.data.map(async (func) => {
-        const points = await this.getPoints(func.id)
+        const rawPoints = await this.getPoints(func.id)
         
+        const points = rawPoints.map(p => ({
+          x: p.x_value,  // переименовываем
+          y: p.y_value
+        }))
+
         return {
           id: func.id,
           name: func.name,
