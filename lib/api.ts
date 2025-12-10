@@ -368,7 +368,6 @@ class ApiClient {
   }
 
   async deleteFunction(id: string) {
-    // Если бэкенд поддерживает удаление
     return this.request<void>(`/functions/${id}`, {
       method: "DELETE",
     })

@@ -50,8 +50,9 @@ export function FunctionsProvider({ children }: { children: ReactNode }) {
     saveFunctions(functions.map((f) => (f.id === id ? { ...func, id } : f)))
   }
 
-  const deleteFunction = (id: number) => {
+  const deleteFunction = (id: string) => {
     saveFunctions(functions.filter((f) => f.id !== id))
+    api.deleteFunction(id)
   }
 
   const getFunction = (id: number) => {

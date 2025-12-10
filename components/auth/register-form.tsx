@@ -32,11 +32,13 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
     }
 
     if (password !== confirmPassword) {
+      alert("Пароли не совпадают")
       toast.error("Пароли не совпадают")
       return
     }
 
     if (password.length < 6) {
+      alert("Пароль должен содержать минимум 6 символов")
       toast.error("Пароль должен содержать минимум 6 символов")
       return
     }
