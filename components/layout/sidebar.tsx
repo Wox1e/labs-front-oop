@@ -5,14 +5,13 @@ import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { useAuth } from "@/lib/auth-context"
 import { Button } from "@/components/ui/button"
-import { Home, PlusCircle, LineChart, Settings, LogOut, Menu, X } from "lucide-react"
+import { Home, PlusCircle, LineChart, LogOut, Menu, X } from "lucide-react"
 import { useState } from "react"
 
 const navigation = [
   { name: "Главная", href: "/dashboard", icon: Home },
   { name: "Создать функцию", href: "/dashboard/create", icon: PlusCircle },
   { name: "Графики", href: "/dashboard/graphs", icon: LineChart },
-  { name: "Настройки", href: "/dashboard/settings", icon: Settings },
 ]
 
 export function Sidebar() {
@@ -92,7 +91,6 @@ export function Sidebar() {
                 <p className="text-sm font-medium text-sidebar-foreground truncate">
                   {user?.username || "Пользователь"}
                 </p>
-                <p className="text-xs text-muted-foreground truncate">{user?.email || ""}</p>
               </div>
             </div>
             <Button

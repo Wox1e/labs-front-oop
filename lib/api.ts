@@ -132,12 +132,10 @@ class ApiClient {
         body: JSON.stringify({ username, password }),
       })
     } catch (_error) {
-      // window.alert("Пользователь с таким именем уже существует!")
       throw new Error("Пользователь уже существует")
     }
 
     if (!result.created) {
-      window.alert("Пользователь с таким именем уже существует!")
       throw new Error("Пользователь уже существует")
     }
 

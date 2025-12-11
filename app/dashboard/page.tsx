@@ -3,7 +3,6 @@
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { AuthProvider, useAuth } from "@/lib/auth-context"
-import { SettingsProvider } from "@/lib/settings-context"
 import { DashboardLayout } from "@/components/layout/dashboard-layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -72,23 +71,6 @@ function DashboardContent() {
           ))}
         </div>
 
-        {/* Info section */}
-        <Card className="bg-primary/5 border-primary/20">
-          <CardContent className="pt-6">
-            <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
-              <div className="flex-1">
-                <h3 className="font-semibold text-lg">Совет</h3>
-                <p className="text-muted-foreground text-sm mt-1">
-                  Перейдите в раздел <strong>Настройки</strong> для выбора типа фабрики (массив или связный список) для
-                  создания новых функций.
-                </p>
-              </div>
-              <Button asChild variant="outline">
-                <Link href="/dashboard/settings">Настройки</Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </DashboardLayout>
   )
@@ -97,9 +79,7 @@ function DashboardContent() {
 export default function DashboardPage() {
   return (
     <AuthProvider>
-      <SettingsProvider>
-        <DashboardContent />
-      </SettingsProvider>
+      <DashboardContent />
     </AuthProvider>
   )
 }

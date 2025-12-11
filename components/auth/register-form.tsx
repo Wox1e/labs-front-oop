@@ -31,13 +31,11 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
     }
 
     if (password !== confirmPassword) {
-      alert("Пароли не совпадают")
       toast.error("Пароли не совпадают")
       return
     }
 
     if (password.length < 6) {
-      alert("Пароль должен содержать минимум 6 символов")
       toast.error("Пароль должен содержать минимум 6 символов")
       return
     }
@@ -50,7 +48,8 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
       const message = error instanceof Error ? error.message : "Ошибка регистрации"
       const lower = message.toLowerCase()
       if (lower.includes("exist") || lower.includes("существ")) {
-        alert("Пользователь с таким именем уже существует")
+        toast.error("Пользователь с таким именем уже существует")
+        return
       }
       toast.error(message)
     } finally {
