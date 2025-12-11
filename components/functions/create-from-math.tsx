@@ -19,7 +19,6 @@ import { useSettings } from "@/lib/settings-context"
 import { toast } from "sonner"
 import { Loader2, FunctionSquare } from "lucide-react"
 import type { Point, TabulatedFunction } from "@/lib/types"
-import { api } from "@/lib/api" // Импортируем API
 
 
 // Available math functions (sorted by priority, then alphabetically)
@@ -39,7 +38,7 @@ const mathFunctions = [
 ].sort((a, b) => a.priority - b.priority || a.localizedName.localeCompare(b.localizedName, "ru"))
 
 interface CreateFromMathProps {
-  onCreated: (func: TabulatedFunction) => void
+  onCreated: (func: TabulatedFunction) => Promise<void> | void
   trigger?: React.ReactNode
 }
 
@@ -103,10 +102,7 @@ export function CreateFromMath({ onCreated, trigger }: CreateFromMathProps) {
         isRemovable: settings.factoryType === "linkedList",
       }
 
-      const response = await api.createFromArray(func)
-      func.id = response.id
-
-      onCreated(func)
+      await onCreated(func)
       toast.success("Функция создана успешно")
       setOpen(false)
       resetForm()

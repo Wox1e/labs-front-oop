@@ -21,7 +21,7 @@ export interface MathFunction {
 }
 
 export interface User {
-  id: number
+  id: string
   username: string
   email: string
 }
@@ -46,8 +46,8 @@ export interface CreateFromMathFunctionRequest {
 }
 
 export interface OperationRequest {
-  firstFunctionId: number
-  secondFunctionId: number
+  firstFunctionId: string
+  secondFunctionId: string
 }
 
 export interface ApiError {

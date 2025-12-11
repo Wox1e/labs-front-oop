@@ -107,10 +107,15 @@ function DifferentiationContent() {
     }
   }
 
-  const handleSaveResult = () => {
+  const handleSaveResult = async () => {
     if (!result) return
-    addFunction(result)
-    toast.success("Результат сохранён")
+    try {
+      await addFunction(result)
+      toast.success("Результат сохранён")
+    } catch (error) {
+      toast.error("Не удалось сохранить результат")
+      console.error(error)
+    }
   }
 
   const handleExportResult = () => {

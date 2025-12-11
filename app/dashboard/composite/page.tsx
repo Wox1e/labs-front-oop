@@ -183,13 +183,18 @@ function CompositeContent() {
     }
   }
 
-  const handleCreateTabulated = () => {
+  const handleCreateTabulated = async () => {
     if (!previewFunc) {
       toast.error("Нет функции для создания")
       return
     }
-    addFunction(previewFunc)
-    toast.success("Табулированная функция создана")
+    try {
+      await addFunction(previewFunc)
+      toast.success("Табулированная функция создана")
+    } catch (error) {
+      toast.error("Не удалось сохранить функцию")
+      console.error(error)
+    }
   }
 
   const handleDelete = (id: number) => {

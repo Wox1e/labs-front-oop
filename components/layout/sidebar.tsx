@@ -5,16 +5,13 @@ import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { useAuth } from "@/lib/auth-context"
 import { Button } from "@/components/ui/button"
-import { Home, PlusCircle, Calculator, LineChart, Settings, LogOut, Layers, GitBranch, Menu, X } from "lucide-react"
+import { Home, PlusCircle, LineChart, Settings, LogOut, Menu, X } from "lucide-react"
 import { useState } from "react"
 
 const navigation = [
   { name: "Главная", href: "/dashboard", icon: Home },
   { name: "Создать функцию", href: "/dashboard/create", icon: PlusCircle },
-  { name: "Операции", href: "/dashboard/operations", icon: Calculator },
-  { name: "Дифференцирование", href: "/dashboard/differentiation", icon: GitBranch },
   { name: "Графики", href: "/dashboard/graphs", icon: LineChart },
-  { name: "Композиция", href: "/dashboard/composite", icon: Layers },
   { name: "Настройки", href: "/dashboard/settings", icon: Settings },
 ]
 

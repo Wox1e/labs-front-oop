@@ -33,7 +33,7 @@ function CreateContent() {
   const { functions, addFunction, deleteFunction } = useFunctions()
   const router = useRouter()
   const [selectedFunc, setSelectedFunc] = useState<TabulatedFunction | null>(null)
-  const [deleteId, setDeleteId] = useState<number | null>(null)
+  const [deleteId, setDeleteId] = useState<string | null>(null)
   const [showPoints, setShowPoints] = useState(true)
 
   useEffect(() => {
@@ -50,9 +50,9 @@ function CreateContent() {
     )
   }
 
-  const handleCreated = (func: TabulatedFunction) => {
-    addFunction(func)
-    setSelectedFunc(func)
+  const handleCreated = async (func: TabulatedFunction) => {
+    const created = await addFunction(func)
+    setSelectedFunc(created)
   }
 
   const handleDelete = () => {
@@ -91,7 +91,7 @@ function CreateContent() {
         if (!func.name || !func.points || !Array.isArray(func.points)) {
           throw new Error("Неверный формат файла")
         }
-        addFunction({ ...func, factoryType: settings.factoryType })
+        await addFunction({ ...func, factoryType: settings.factoryType })
         toast.success("Функция импортирована")
       } catch (error) {
         toast.error(error instanceof Error ? error.message : "Ошибка импорта")

@@ -66,9 +66,8 @@ export function FunctionSelector({
         if (!func.name || !func.points || !Array.isArray(func.points)) {
           throw new Error("Неверный формат файла")
         }
-        const loadedFunc = { ...func, id: Date.now(), factoryType: settings.factoryType }
-        addFunction(loadedFunc)
-        onSelect(loadedFunc)
+        const savedFunc = await addFunction({ ...func, factoryType: settings.factoryType })
+        onSelect(savedFunc)
         toast.success("Функция загружена")
       } catch (error) {
         toast.error(error instanceof Error ? error.message : "Ошибка загрузки")
@@ -77,11 +76,9 @@ export function FunctionSelector({
     input.click()
   }
 
-  const handleCreated = (func: TabulatedFunction) => {
-    addFunction(func)
-    // Get the function with ID from the context
-    const funcWithId = { ...func, id: Date.now() }
-    onSelect(funcWithId)
+  const handleCreated = async (func: TabulatedFunction) => {
+    const created = await addFunction(func)
+    onSelect(created)
   }
 
   return (

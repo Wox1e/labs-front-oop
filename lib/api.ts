@@ -3,7 +3,12 @@
 import { TabulatedFunction } from "./types"
 
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"
+let API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"
+// fallback для client-side: если не задан, подставляем origin с портом 8080
+if (typeof window !== "undefined" && (!API_BASE_URL || API_BASE_URL.includes("3000"))) {
+  const origin = window.location.origin.replace(/:3000$/, ":8080")
+  API_BASE_URL = origin
+}
 
 console.log("[v0] API_BASE_URL:", API_BASE_URL)
 
@@ -51,22 +56,32 @@ class ApiClient {
 
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const token = this.getToken()
-    const headers: HeadersInit = {
+    const headers = new Headers({
       "Content-Type": "application/json",
       "X-API-KEY": "my-secret-key",
-      ...options.headers,
+    })
+
+    if (options.headers) {
+      const incoming = new Headers(options.headers as HeadersInit)
+      incoming.forEach((value, key) => headers.set(key, value))
     }
 
     if (token) {
-      headers["Authorization"] = `Basic ${token}`
+      headers.set("Authorization", `Basic ${token}`)
     }
 
     console.log("[v0] API Request:", `${API_BASE_URL}${endpoint}`, options.method || "GET")
 
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      ...options,
-      headers,
-    })
+    let response: Response
+    try {
+      response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        ...options,
+        headers,
+      })
+    } catch (err) {
+      console.error("[v0] API network error:", err)
+      throw new Error("Сервер недоступен. Проверьте, запущен ли backend на 8080.")
+    }
 
     console.log("[v0] API Response status:", response.status)
 
@@ -105,15 +120,21 @@ class ApiClient {
     };
   }
 
-  async register(username: string, email: string, password: string) {
-    const result = await this.request<{
-      status: string
-      created: boolean
-      id: string
-    }>("/users/", {
-      method: "POST",
-      body: JSON.stringify({ username, password }),
-    })
+  async register(username: string, password: string) {
+    let result
+    try {
+      result = await this.request<{
+        status: string
+        created: boolean
+        id: string
+      }>("/users/", {
+        method: "POST",
+        body: JSON.stringify({ username, password }),
+      })
+    } catch (_error) {
+      // window.alert("Пользователь с таким именем уже существует!")
+      throw new Error("Пользователь уже существует")
+    }
 
     if (!result.created) {
       window.alert("Пользователь с таким именем уже существует!")
@@ -201,16 +222,9 @@ class ApiClient {
       body: JSON.stringify({ name:func.name, type:func.factoryType }),
     })
 
-      func.points.map(async (point_pair) => {        
-        await this.request<{
-          status: string
-          created: boolean
-          id: string
-        }>("/points/", {
-          method: "POST",
-          body: JSON.stringify({ function_id:result.id, x_value:point_pair.x, y_value:point_pair.y }),
-        })
-      })
+    if (func.points.length > 0) {
+      await this.createPointsBulk(result.id, func.points)
+    }
 
 
     return result
@@ -245,6 +259,23 @@ class ApiClient {
     })
 
     return result
+  }
+
+  async createPointsBulk(functionId: string, points: { x: number; y: number }[]) {
+    const payload = points.map((point_pair) => ({
+      function_id: functionId,
+      x_value: point_pair.x,
+      y_value: point_pair.y,
+    }))
+
+    return this.request<{
+      status: string
+      created: boolean
+      count: number
+    }>("/points/bulk", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    })
   }
 
   // Методы для работы с функциями (создание из массивов и мат. функций)

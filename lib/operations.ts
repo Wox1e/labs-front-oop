@@ -36,7 +36,9 @@ function interpolate(points: Point[], x: number): number {
 
 // Apply function at point
 export function applyFunction(func: TabulatedFunction, x: number): number {
-  return interpolate(func.points, x)
+  // гарантируем упорядоченность по X, чтобы интерполяция была корректной
+  const sorted = [...func.points].sort((a, b) => a.x - b.x)
+  return interpolate(sorted, x)
 }
 
 // Binary operation on two functions

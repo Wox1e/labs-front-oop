@@ -18,7 +18,6 @@ interface RegisterFormProps {
 export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
   const { register } = useAuth()
   const [username, setUsername] = useState("")
-  const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
@@ -26,7 +25,7 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!username.trim() || !email.trim() || !password.trim()) {
+    if (!username.trim() || !password.trim()) {
       toast.error("Заполните все поля")
       return
     }
@@ -45,10 +44,15 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
 
     setIsLoading(true)
     try {
-      await register(username, email, password)
+      await register(username, password)
       toast.success("Регистрация успешна")
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Ошибка регистрации")
+      const message = error instanceof Error ? error.message : "Ошибка регистрации"
+      const lower = message.toLowerCase()
+      if (lower.includes("exist") || lower.includes("существ")) {
+        alert("Пользователь с таким именем уже существует")
+      }
+      toast.error(message)
     } finally {
       setIsLoading(false)
     }
@@ -75,18 +79,6 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
               placeholder="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              disabled={isLoading}
-              className="bg-input/50"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="email@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
               disabled={isLoading}
               className="bg-input/50"
             />

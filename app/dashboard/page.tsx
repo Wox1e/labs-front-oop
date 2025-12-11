@@ -7,7 +7,7 @@ import { SettingsProvider } from "@/lib/settings-context"
 import { DashboardLayout } from "@/components/layout/dashboard-layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { PlusCircle, Calculator, LineChart, GitBranch, Layers, ArrowRight, Loader2 } from "lucide-react"
+import { PlusCircle, LineChart, ArrowRight, Loader2 } from "lucide-react"
 import Link from "next/link"
 
 const features = [
@@ -19,32 +19,11 @@ const features = [
     color: "text-chart-1",
   },
   {
-    title: "Операции",
-    description: "Сложение, вычитание, умножение и деление функций",
-    icon: Calculator,
-    href: "/dashboard/operations",
-    color: "text-chart-2",
-  },
-  {
-    title: "Дифференцирование",
-    description: "Вычисление производной табулированной функции",
-    icon: GitBranch,
-    href: "/dashboard/differentiation",
-    color: "text-chart-3",
-  },
-  {
     title: "Графики",
     description: "Визуализация функций и вычисление значений",
     icon: LineChart,
     href: "/dashboard/graphs",
     color: "text-chart-4",
-  },
-  {
-    title: "Композиция",
-    description: "Создание сложных функций из простых",
-    icon: Layers,
-    href: "/dashboard/composite",
-    color: "text-chart-5",
   },
 ]
 

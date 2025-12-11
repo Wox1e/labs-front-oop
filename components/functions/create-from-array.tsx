@@ -20,10 +20,9 @@ import { useSettings } from "@/lib/settings-context"
 import { toast } from "sonner"
 import { Loader2, TableIcon } from "lucide-react"
 import type { Point, TabulatedFunction } from "@/lib/types"
-import { api } from "@/lib/api" // Импортируем API
 
 interface CreateFromArrayProps {
-  onCreated: (func: TabulatedFunction) => void
+  onCreated: (func: TabulatedFunction) => Promise<void> | void
   trigger?: React.ReactNode
 }
 
@@ -73,12 +72,6 @@ export function CreateFromArray({ onCreated, trigger }: CreateFromArrayProps) {
     setIsLoading(true)
 
     try {
-      // Извлекаем массивы X и Y из точек
-      const xValues = sortedByX.map(point => point.x)
-      const yValues = sortedByX.map(point => point.y)
-
-
-      
       // Создаем объект функции для локального состояния
       const func: TabulatedFunction = {
         name: name.trim(),
@@ -88,15 +81,9 @@ export function CreateFromArray({ onCreated, trigger }: CreateFromArrayProps) {
         isRemovable: settings.factoryType === "linkedList",
       }
 
+      // передаем наверх для сохранения и отображения
+      await onCreated(func)
 
-      // Отправляем запрос на бэкенд
-      const response = await api.createFromArray(func)
-      func.id = response.id
-
-
-      // Вызываем колбэк с созданной функцией
-      onCreated(func)
-      
       toast.success("Функция создана успешно")
       setOpen(false)
       resetForm()

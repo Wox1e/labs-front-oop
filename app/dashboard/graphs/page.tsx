@@ -12,7 +12,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { FunctionGraph } from "@/components/functions/function-graph"
-import { FunctionTable } from "@/components/functions/function-table"
 import { applyFunction } from "@/lib/operations"
 import { Loader2, Calculator, ZoomIn, ZoomOut, Grid, Circle } from "lucide-react"
 import { toast } from "sonner"
@@ -20,11 +19,11 @@ import type { TabulatedFunction } from "@/lib/types"
 
 function GraphsContent() {
   const { user, isLoading } = useAuth()
-  const { functions, updateFunction } = useFunctions()
+  const { functions } = useFunctions()
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [selectedFunc, setSelectedFunc] = useState<TabulatedFunction | null>(null)
   const [applyX, setApplyX] = useState<string>("")
   const [applyResult, setApplyResult] = useState<number | null>(null)
@@ -42,13 +41,10 @@ function GraphsContent() {
   useEffect(() => {
     const idParam = searchParams.get("id")
     if (idParam) {
-      const id = Number.parseInt(idParam)
-      if (!Number.isNaN(id)) {
-        setSelectedIds(new Set([id]))
-        const func = functions.find((f) => f.id === id)
-        if (func) {
-          setSelectedFunc(func)
-        }
+      setSelectedIds(new Set([idParam]))
+      const func = functions.find((f) => f.id === idParam)
+      if (func) {
+        setSelectedFunc(func)
       }
     }
   }, [searchParams, functions])
@@ -63,7 +59,7 @@ function GraphsContent() {
 
   const selectedFunctions = functions.filter((f) => f.id && selectedIds.has(f.id))
 
-  const toggleFunction = (id: number) => {
+  const toggleFunction = (id: string) => {
     const newSelected = new Set(selectedIds)
     if (newSelected.has(id)) {
       newSelected.delete(id)
@@ -99,42 +95,6 @@ function GraphsContent() {
     }
   }
 
-  const handlePointChange = (index: number, field: "x" | "y", value: number) => {
-    if (!selectedFunc) return
-    const newPoints = [...selectedFunc.points]
-    newPoints[index] = { ...newPoints[index], [field]: value }
-    const updated = { ...selectedFunc, points: newPoints }
-    setSelectedFunc(updated)
-    if (selectedFunc.id) {
-      updateFunction(selectedFunc.id, updated)
-    }
-  }
-
-  const handleInsertPoint = (x: number, y: number) => {
-    if (!selectedFunc) return
-    const newPoints = [...selectedFunc.points, { x, y }].sort((a, b) => a.x - b.x)
-    const updated = { ...selectedFunc, points: newPoints }
-    setSelectedFunc(updated)
-    if (selectedFunc.id) {
-      updateFunction(selectedFunc.id, updated)
-    }
-    toast.success("Точка добавлена")
-  }
-
-  const handleRemovePoint = (index: number) => {
-    if (!selectedFunc || selectedFunc.points.length <= 2) {
-      toast.error("Минимум 2 точки")
-      return
-    }
-    const newPoints = selectedFunc.points.filter((_, i) => i !== index)
-    const updated = { ...selectedFunc, points: newPoints }
-    setSelectedFunc(updated)
-    if (selectedFunc.id) {
-      updateFunction(selectedFunc.id, updated)
-    }
-    toast.success("Точка удалена")
-  }
-
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -162,12 +122,12 @@ function GraphsContent() {
                         selectedFunc?.id === func.id ? "bg-accent" : "hover:bg-accent/50"
                       }`}
                       onClick={() => {
-                        toggleFunction(func.id!)
+                        if (func.id) toggleFunction(func.id)
                       }}
                     >
                       <Checkbox
-                        checked={selectedIds.has(func.id!)}
-                        onCheckedChange={() => toggleFunction(func.id!)}
+                        checked={!!func.id && selectedIds.has(func.id)}
+                        onCheckedChange={() => func.id && toggleFunction(func.id)}
                         onClick={(e) => e.stopPropagation()}
                       />
                       <div className="flex-1 min-w-0">
@@ -237,76 +197,46 @@ function GraphsContent() {
           </CardContent>
         </Card>
 
-        <div className="grid gap-4 lg:grid-cols-2">
-          {/* Apply function */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Calculator className="h-5 w-5 text-chart-1" />
-                Вычислить значение
-              </CardTitle>
-              <CardDescription className="text-xs">Вычисление f(x) для выбранной функции</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex gap-2">
-                <div className="flex-1">
-                  <Label htmlFor="applyX" className="sr-only">
-                    Значение X
-                  </Label>
-                  <Input
-                    id="applyX"
-                    type="number"
-                    step="any"
-                    placeholder="Введите X"
-                    value={applyX}
-                    onChange={(e) => setApplyX(e.target.value)}
-                    className="bg-input/50"
-                  />
-                </div>
-                <Button onClick={handleApply} disabled={!selectedFunc}>
-                  <Calculator className="h-4 w-4 mr-1" />
-                  Вычислить
-                </Button>
-              </div>
-              {applyResult !== null && (
-                <div className="p-4 rounded-lg bg-primary/10 border border-primary/20">
-                  <div className="text-sm text-muted-foreground">
-                    {selectedFunc?.name}: f({applyX}) =
-                  </div>
-                  <div className="text-2xl font-bold font-mono text-primary">{applyResult.toFixed(6)}</div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Edit points */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">Редактирование точек</CardTitle>
-              <CardDescription className="text-xs">
-                {selectedFunc ? selectedFunc.name : "Выберите функцию для редактирования"}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {selectedFunc ? (
-                <FunctionTable
-                  points={selectedFunc.points}
-                  onPointChange={handlePointChange}
-                  onInsertPoint={selectedFunc.isInsertable ? handleInsertPoint : undefined}
-                  onDeletePoint={selectedFunc.isRemovable ? handleRemovePoint : undefined}
-                  editable
-                  showInsert={!!selectedFunc.isInsertable}
-                  showDelete={!!selectedFunc.isRemovable}
-                  maxHeight="250px"
+        {/* Apply function (full width, editing removed) */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Calculator className="h-5 w-5 text-chart-1" />
+              Вычислить значение
+            </CardTitle>
+            <CardDescription className="text-xs">Вычисление f(x) для выбранной функции</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex gap-3 flex-wrap">
+              <div className="flex-1 min-w-[220px]">
+                <Label htmlFor="applyX" className="sr-only">
+                  Значение X
+                </Label>
+                <Input
+                  id="applyX"
+                  type="number"
+                  step="any"
+                  placeholder="Введите X"
+                  value={applyX}
+                  onChange={(e) => setApplyX(e.target.value)}
+                  className="bg-input/50"
                 />
-              ) : (
-                <div className="h-[200px] flex items-center justify-center border rounded-lg border-dashed text-muted-foreground text-sm">
-                  Выберите функцию
+              </div>
+              <Button onClick={handleApply} disabled={!selectedFunc}>
+                <Calculator className="h-4 w-4 mr-1" />
+                Вычислить
+              </Button>
+            </div>
+            {applyResult !== null && (
+              <div className="p-4 rounded-lg bg-primary/10 border border-primary/20">
+                <div className="text-sm text-muted-foreground">
+                  {selectedFunc?.name}: f({applyX}) =
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+                <div className="text-2xl font-bold font-mono text-primary">{applyResult.toFixed(6)}</div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </DashboardLayout>
   )
