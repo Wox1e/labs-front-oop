@@ -77,6 +77,25 @@ function GraphsContent() {
     setSelectedIds(newSelected)
   }
 
+  const handleApply = () => {
+    if (!selectedFunc) {
+      toast.error("Выберите функцию")
+      return
+    }
+    const x = Number.parseFloat(applyX)
+    if (Number.isNaN(x)) {
+      toast.error("Введите корректное значение X")
+      return
+    }
+    try {
+      const result = applyFunction(selectedFunc, x)
+      setApplyResult(result)
+      toast.success(`f(${x}) = ${result.toFixed(6)}`)
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Ошибка вычисления")
+    }
+  }
+
   const handleZoomIn = () => setZoom(z => Math.max(0.2, z * 0.8))
   const handleZoomOut = () => setZoom(z => Math.min(4, z * 1.25))
 
@@ -188,8 +207,57 @@ function GraphsContent() {
         </Card>
 
         {/* Apply function (full width, editing removed) */}
-        {/* Удаляю Card секцию <Card> ... <CardContent> ... </Card> с вычислением значения (applyX, handleApply и т.д.) */}
-        {/* То есть код между {/* Apply function (full width, editing removed) */} ... {/Card} удалён полностью. */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Calculator className="h-5 w-5 text-chart-1" />
+              Вычислить значение
+            </CardTitle>
+            <CardDescription className="text-xs">Вычисление f(x) для выбранной функции</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex gap-3 flex-wrap">
+              <div className="flex-1 min-w-[220px]">
+                <Label htmlFor="applyX" className="sr-only">
+                  Значение X
+                </Label>
+                <Input
+                  id="applyX"
+                  type="number"
+                  step="any"
+                  placeholder="Введите X"
+                  value={applyX}
+                  onChange={(e) => setApplyX(e.target.value)}
+                  className="bg-input/50"
+                />
+              </div>
+              <Button 
+                onClick={handleApply} 
+                disabled={!selectedFunc}
+                aria-label="Вычислить значение функции"
+              >
+                <Calculator className="h-4 w-4 mr-1" aria-hidden="true" />
+                Вычислить
+              </Button>
+            </div>
+            {applyResult !== null && (
+              <div 
+                className="p-4 rounded-lg bg-primary/10 border border-primary/20 animate-in fade-in slide-in-from-bottom-2"
+                role="status"
+                aria-live="polite"
+                aria-atomic="true"
+              >
+                <div className="text-sm text-muted-foreground">
+                  {selectedFunc?.name}: f({applyX}) =
+                </div>
+                <div className="text-2xl font-bold font-mono text-primary">{applyResult.toFixed(6)}</div>
+                <div className="text-xs text-muted-foreground mt-2">
+                  Точка ({applyX}, {applyResult.toFixed(6)}) отмечена на графике
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </DashboardLayout>
   )
