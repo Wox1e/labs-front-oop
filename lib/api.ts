@@ -222,7 +222,7 @@ class ApiClient {
   }
 
   async createFunction(func: TabulatedFunction, storageMode: "pointwise" | "polynomial" = "polynomial") {
-    // Отправляем функцию целиком с точками и режимом сохранения
+    // Передаём type: 'array' всегда (заглушка для бэка)
     const result = await this.request<{
       status: string
       created: boolean
@@ -231,7 +231,7 @@ class ApiClient {
       method: "POST",
       body: JSON.stringify({ 
         name: func.name, 
-        type: func.factoryType,
+        type: "array",
         points: func.points.map(p => ({ x: p.x, y: p.y })),
         storageMode: storageMode
       }),
@@ -296,17 +296,16 @@ class ApiClient {
       throw new Error("Некорректные данные функции")
     }
     
-    // Создаем функцию и получаем ID от сервера
-    const funcResult = await this.createFunction(func, storageMode)
+    // type: 'array' всегда как заглушка
+    const funcResult = await this.createFunction({ ...func, type: "array" }, storageMode)
     
     // Возвращаем созданную функцию с ID
     return {
       id: funcResult.id,
       name: func.name,
       points: func.points,
-      factoryType: func.factoryType,
-      isInsertable: func.factoryType === "linkedList",
-      isRemovable: func.factoryType === "linkedList"
+      isInsertable: false,
+      isRemovable: false
     }
   }
 
@@ -415,12 +414,12 @@ class ApiClient {
   }
 
   async updateFunction(id: string, data: any) {
-    // Обновляем функцию целиком с точками и режимом сохранения
+    // type: 'array' всегда заглушкой
     const result = await this.request<any>(`/functions/${id}`, {
       method: "PUT",
       body: JSON.stringify({
         name: data.name,
-        type: data.factoryType || data.type,
+        type: "array",
         points: data.points ? data.points.map((p: any) => ({ x: p.x, y: p.y })) : undefined,
         storageMode: data.storageMode || "polynomial",
       }),
