@@ -9,6 +9,7 @@ export interface TabulatedFunction {
   id?: string
   name: string
   points: Point[]
+  factoryType?: "array" | "linkedList"
   isInsertable?: boolean
   isRemovable?: boolean
 }

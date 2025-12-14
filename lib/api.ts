@@ -1,6 +1,6 @@
 // API client for backend communication - updated for Java backend
 
-import { TabulatedFunction } from "./types"
+import { TabulatedFunction, Point } from "./types"
 
 
 let API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"
@@ -179,15 +179,22 @@ class ApiClient {
     }>(`/functions/${queryString ? `?${queryString}` : ""}`)
   
     // Точки теперь приходят уже внутри функции (восстановленные из полинома)
-    const functionsList: TabulatedFunction[] = result.data.map((func) => {
-      const points = (func.points || []).map((p: any) => ({
-        x: p.x || p.x_value,
-        y: p.y || p.y_value
-      }))
+    const functionsList: TabulatedFunction[] = result.data.map((func: any) => {
+      const points = (func.points || [])
+        .map((p: any) => {
+          const x = p?.x ?? p?.x_value
+          const y = p?.y ?? p?.y_value
+          // Фильтруем точки с валидными значениями
+          if (typeof x === "number" && typeof y === "number" && Number.isFinite(x) && Number.isFinite(y)) {
+            return { x, y }
+          }
+          return null
+        })
+        .filter((p: Point | null): p is Point => p !== null)
 
       return {
-        id: func.id,
-        name: func.name,
+        id: func.id || undefined,
+        name: func.name || "Без названия",
         points: points,
         factoryType: func.type || "array",
         isInsertable: (func.type || "array") === "linkedList",
@@ -212,12 +219,23 @@ class ApiClient {
 
     // Точки теперь приходят уже внутри функции (восстановленные из полинома)
     const func = result.data
+    const points = (func.points || [])
+      .map((p: any) => {
+        const x = p?.x ?? p?.x_value
+        const y = p?.y ?? p?.y_value
+        // Фильтруем точки с валидными значениями
+        if (typeof x === "number" && typeof y === "number" && Number.isFinite(x) && Number.isFinite(y)) {
+          return { x, y }
+        }
+        return null
+      })
+      .filter((p: Point | null): p is Point => p !== null)
+    
     return {
       ...func,
-      points: (func.points || []).map((p: any) => ({
-        x: p.x || p.x_value,
-        y: p.y || p.y_value
-      }))
+      id: func.id || undefined,
+      name: func.name || "Без названия",
+      points: points
     }
   }
 
@@ -297,7 +315,7 @@ class ApiClient {
     }
     
     // type: 'array' всегда как заглушка
-    const funcResult = await this.createFunction({ ...func, type: "array" }, storageMode)
+    const funcResult = await this.createFunction(func, storageMode)
     
     // Возвращаем созданную функцию с ID
     return {

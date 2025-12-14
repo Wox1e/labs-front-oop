@@ -45,11 +45,14 @@ export function FunctionsProvider({ children }: { children: ReactNode }) {
   const addFunction = async (func: TabulatedFunction) => {
     // сохраняем на бэкенде с учетом настройки режима сохранения
     const created = await api.createFromArray(func, settings.storageMode)
+    if (!created || !created.id) {
+      throw new Error("Ошибка создания функции: не получен ID")
+    }
     const newFunc: TabulatedFunction = {
       ...func,
       id: created.id,
-      isInsertable: created.isInsertable,
-      isRemovable: created.isRemovable,
+      isInsertable: created.isInsertable ?? false,
+      isRemovable: created.isRemovable ?? false,
     }
     saveFunctions([...functions, newFunc])
     return newFunc

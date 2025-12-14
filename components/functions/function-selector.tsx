@@ -47,7 +47,8 @@ export function FunctionSelector({
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
     a.href = url
-    a.download = `${selectedFunction.name.replace(/\s+/g, "_")}.json`
+    const fileName = (selectedFunction.name || "function").replace(/\s+/g, "_")
+    a.download = `${fileName}.json`
     a.click()
     URL.revokeObjectURL(url)
     toast.success("Функция экспортирована")
