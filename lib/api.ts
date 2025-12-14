@@ -181,8 +181,8 @@ class ApiClient {
     // Точки теперь приходят уже внутри функции (восстановленные из полинома)
     const functionsList: TabulatedFunction[] = result.data.map((func) => {
       const points = (func.points || []).map((p: any) => ({
-        x: p.x || p.x_value,
-        y: p.y || p.y_value
+        x: p.x ?? p.x_value ?? 0,
+        y: p.y ?? p.y_value ?? 0
       }))
 
       return {
@@ -215,8 +215,8 @@ class ApiClient {
     return {
       ...func,
       points: (func.points || []).map((p: any) => ({
-        x: p.x || p.x_value,
-        y: p.y || p.y_value
+        x: p.x ?? p.x_value ?? 0,
+        y: p.y ?? p.y_value ?? 0
       }))
     }
   }
@@ -297,7 +297,7 @@ class ApiClient {
     }
     
     // type: 'array' всегда как заглушка
-    const funcResult = await this.createFunction({ ...func, type: "array" }, storageMode)
+    const funcResult = await this.createFunction(func, storageMode)
     
     // Возвращаем созданную функцию с ID
     return {
