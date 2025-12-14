@@ -66,9 +66,9 @@ export function FunctionsProvider({ children }: { children: ReactNode }) {
       // Обновляем на бэкенде с учетом настройки режима сохранения
       await api.updateFunction(id, {
         name: updated.name,
-        type: updated.factoryType,
+        type: "array",
         points: updated.points,
-        factoryType: updated.factoryType,
+        factoryType: "array",
         storageMode: settings.storageMode,
       })
     } catch (err) {

@@ -102,12 +102,12 @@ function CompositeContent() {
       setPreviewFunc({
         name: localizedName || "Предпросмотр",
         points,
-        factoryType: settings.factoryType,
+        factoryType: "array",
       })
     } else {
       setPreviewFunc(null)
     }
-  }, [innerFunction, outerFunction, localizedName, compositeFunctions, settings.factoryType])
+  }, [innerFunction, outerFunction, localizedName, compositeFunctions])
 
   const evaluateComposite = (composite: { innerFunction: string; outerFunction: string }, x: number): number => {
     const innerFn = [...baseFunctions, ...compositeFunctions].find((f) => f.name === composite.innerFunction)

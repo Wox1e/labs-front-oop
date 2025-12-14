@@ -10,7 +10,6 @@ import { useFunctions } from "@/lib/functions-context"
 import type { TabulatedFunction } from "@/lib/types"
 import { Download, Upload, Plus, PlusCircle } from "lucide-react"
 import { toast } from "sonner"
-import { useSettings } from "@/lib/settings-context"
 
 interface FunctionSelectorProps {
   title: string
@@ -38,7 +37,6 @@ export function FunctionSelector({
   maxHeight = "300px",
 }: FunctionSelectorProps) {
   const { functions, addFunction } = useFunctions()
-  const { settings } = useSettings()
 
   const handleExport = () => {
     if (!selectedFunction) return
@@ -66,7 +64,7 @@ export function FunctionSelector({
         if (!func.name || !func.points || !Array.isArray(func.points)) {
           throw new Error("Неверный формат файла")
         }
-        const savedFunc = await addFunction({ ...func, factoryType: settings.factoryType })
+        const savedFunc = await addFunction({ ...func, factoryType: "array" })
         onSelect(savedFunc)
         toast.success("Функция загружена")
       } catch (error) {

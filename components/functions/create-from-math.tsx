@@ -15,7 +15,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { useSettings } from "@/lib/settings-context"
 import { toast } from "sonner"
 import { Loader2, FunctionSquare } from "lucide-react"
 import type { Point, TabulatedFunction } from "@/lib/types"
@@ -43,7 +42,6 @@ interface CreateFromMathProps {
 }
 
 export function CreateFromMath({ onCreated, trigger }: CreateFromMathProps) {
-  const { settings } = useSettings()
   const [open, setOpen] = useState(false)
   const [name, setName] = useState("")
   const [selectedFunction, setSelectedFunction] = useState("")
@@ -97,9 +95,9 @@ export function CreateFromMath({ onCreated, trigger }: CreateFromMathProps) {
       const func: TabulatedFunction = {
         name: name.trim(),
         points,
-        factoryType: settings.factoryType,
-        isInsertable: settings.factoryType === "linkedList",
-        isRemovable: settings.factoryType === "linkedList",
+        factoryType: "array",
+        isInsertable: false,
+        isRemovable: false,
       }
 
       await onCreated(func)

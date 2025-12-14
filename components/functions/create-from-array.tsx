@@ -16,7 +16,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { FunctionTable } from "./function-table"
-import { useSettings } from "@/lib/settings-context"
 import { toast } from "sonner"
 import { Loader2, TableIcon } from "lucide-react"
 import type { Point, TabulatedFunction } from "@/lib/types"
@@ -27,7 +26,6 @@ interface CreateFromArrayProps {
 }
 
 export function CreateFromArray({ onCreated, trigger }: CreateFromArrayProps) {
-  const { settings } = useSettings()
   const [open, setOpen] = useState(false)
   const [name, setName] = useState("")
   const [pointsCount, setPointsCount] = useState<number>(2)
@@ -76,9 +74,9 @@ export function CreateFromArray({ onCreated, trigger }: CreateFromArrayProps) {
       const func: TabulatedFunction = {
         name: name.trim(),
         points: sortedByX,
-        factoryType: settings.factoryType,
-        isInsertable: settings.factoryType === "linkedList",
-        isRemovable: settings.factoryType === "linkedList",
+        factoryType: "array",
+        isInsertable: false,
+        isRemovable: false,
       }
 
       // передаем наверх для сохранения и отображения

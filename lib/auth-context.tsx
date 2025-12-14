@@ -25,7 +25,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     console.log("[v0] Token found:", !!token)
     if (token) {
       // For demo, we'll create a mock user - in production, validate token with server
-      setUser({ id: 1, username: api.getUsername()})
+      const username = api.getUsername()
+      if (username) {
+        setUser({ id: username, username })
+      }
     }
     setIsLoading(false)
   }, [])

@@ -91,7 +91,7 @@ function CreateContent() {
         if (!func.name || !func.points || !Array.isArray(func.points)) {
           throw new Error("Неверный формат файла")
         }
-        await addFunction({ ...func, factoryType: settings.factoryType })
+        await addFunction({ ...func, factoryType: "array" })
         toast.success("Функция импортирована")
       } catch (error) {
         toast.error(error instanceof Error ? error.message : "Ошибка импорта")
@@ -106,10 +106,6 @@ function CreateContent() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Создание функций</h1>
-            <p className="text-muted-foreground mt-1">
-              Текущая фабрика:{" "}
-              <Badge variant="secondary">{settings.factoryType === "array" ? "Массив" : "Связный список"}</Badge>
-            </p>
           </div>
           <Button 
             variant="outline" 
@@ -185,8 +181,7 @@ function CreateContent() {
                 <CardHeader className="pb-2">
                   <CardTitle>{selectedFunc.name}</CardTitle>
                   <CardDescription>
-                    {selectedFunc.points.length} точек • Тип:{" "}
-                    {selectedFunc.factoryType === "array" ? "Массив" : "Список"}
+                    {selectedFunc.points.length} точек
                   </CardDescription>
                 </CardHeader>
                 <CardContent>

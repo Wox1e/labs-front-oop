@@ -6,10 +6,12 @@ import type { FactoryType, StorageMode, AppSettings } from "./types"
 interface SettingsContextType {
   settings: AppSettings
   setStorageMode: (mode: StorageMode) => void
+  setFactoryType: (type: FactoryType) => void
 }
 
 const defaultSettings: AppSettings = {
   storageMode: "pointwise",
+  factoryType: "array",
 }
 
 const SettingsContext = createContext<SettingsContextType | null>(null)
@@ -23,7 +25,13 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     const saved = localStorage.getItem("app_settings")
     if (saved) {
       try {
-        setSettings(JSON.parse(saved))
+        const parsed = JSON.parse(saved) as AppSettings
+        // Убеждаемся, что factoryType есть (для старых сохранений)
+        setSettings({
+          ...defaultSettings,
+          ...parsed,
+          factoryType: parsed.factoryType || defaultSettings.factoryType,
+        })
       } catch {}
     }
   }, [])
@@ -36,9 +44,17 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  const setFactoryType = (type: FactoryType) => {
+    const newSettings = { ...settings, factoryType: type }
+    setSettings(newSettings)
+    if (typeof window !== "undefined") {
+      localStorage.setItem("app_settings", JSON.stringify(newSettings))
+    }
+  }
+
   if (!mounted) return null
 
-  return <SettingsContext.Provider value={{ settings, setStorageMode }}>{children}</SettingsContext.Provider>
+  return <SettingsContext.Provider value={{ settings, setStorageMode, setFactoryType }}>{children}</SettingsContext.Provider>
 }
 
 export function useSettings() {

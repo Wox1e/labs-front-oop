@@ -327,13 +327,13 @@ class ApiClient {
       points.push({ x, y }) // Создаем объект точки и добавляем в массив
     }
   
-    // Создаем объект TabulatedFunction
+    // Создаем объект TabulatedFunction (всегда используем "array")
     const tabulatedFunc: TabulatedFunction = {
       name: name,
       points: points, // Используем созданный массив точек
-      factoryType: factoryType,
-      isInsertable: factoryType === "linkedList",
-      isRemovable: factoryType === "linkedList"
+      factoryType: "array",
+      isInsertable: false,
+      isRemovable: false
     }
     
     return this.createFromArray(tabulatedFunc)

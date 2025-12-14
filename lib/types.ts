@@ -5,14 +5,6 @@ export interface Point {
   y: number
 }
 
-export interface TabulatedFunction {
-  id?: string
-  name: string
-  points: Point[]
-  isInsertable?: boolean
-  isRemovable?: boolean
-}
-
 export interface MathFunction {
   name: string
   localizedName: string
@@ -56,6 +48,18 @@ export interface ApiError {
 
 export type StorageMode = "pointwise" | "polynomial"
 
+export type FactoryType = "array" | "linkedList"
+
+export interface TabulatedFunction {
+  id?: string
+  name: string
+  points: Point[]
+  factoryType?: FactoryType
+  isInsertable?: boolean
+  isRemovable?: boolean
+}
+
 export interface AppSettings {
   storageMode: StorageMode
+  factoryType?: FactoryType
 }

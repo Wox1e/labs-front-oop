@@ -14,11 +14,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
-  Database,
   Download,
   Edit,
   LineChart,
-  Link2,
   MoreVertical,
   Trash2,
 } from "lucide-react"
@@ -63,7 +61,6 @@ export function FunctionCard({
 
   // Безопасное извлечение других свойств
   const name = typeof func.name === "string" ? func.name : "Без названия"
-  const factoryType = func.factoryType === "array" ? "array" : "linkedList"
   const isInsertable = Boolean(func.isInsertable)
   const isRemovable = Boolean(func.isRemovable)
   const id = func.id !== undefined ? func.id : null
@@ -161,19 +158,6 @@ export function FunctionCard({
       </CardHeader>
       <CardContent className="pt-0">
         <div className="flex items-center gap-2">
-          <Badge variant="secondary" className="text-xs">
-            {factoryType === "array" ? (
-              <>
-                <Database className="h-3 w-3 mr-1" />
-                Массив
-              </>
-            ) : (
-              <>
-                <Link2 className="h-3 w-3 mr-1" />
-                Список
-              </>
-            )}
-          </Badge>
           {isInsertable && (
             <Badge variant="outline" className="text-xs">
               Insertable
