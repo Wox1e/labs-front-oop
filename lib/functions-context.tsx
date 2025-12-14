@@ -3,12 +3,13 @@
 import { createContext, useContext, useState, type ReactNode, useEffect } from "react"
 import type { TabulatedFunction } from "./types"
 import { api } from "@/lib/api"
+import { useSettings } from "./settings-context"
 
 interface FunctionsContextType {
   functions: TabulatedFunction[]
   addFunction: (func: TabulatedFunction) => Promise<TabulatedFunction>
-  updateFunction: (id: string, func: TabulatedFunction) => void
-  deleteFunction: (id: string) => void
+  updateFunction: (id: string, func: Partial<TabulatedFunction>) => Promise<void>
+  deleteFunction: (id: string) => Promise<void>
   getFunction: (id: string) => TabulatedFunction | undefined
 }
 
@@ -16,6 +17,7 @@ const FunctionsContext = createContext<FunctionsContextType | null>(null)
 
 export function FunctionsProvider({ children }: { children: ReactNode }) {
   const [functions, setFunctions] = useState<TabulatedFunction[]>([])
+  const { settings } = useSettings()
 
   useEffect(() => {
     const fetchFunctions = async () => {
@@ -41,8 +43,8 @@ export function FunctionsProvider({ children }: { children: ReactNode }) {
   }
 
   const addFunction = async (func: TabulatedFunction) => {
-    // сохраняем на бэкенде и получаем реальный id
-    const created = await api.createFromArray(func)
+    // сохраняем на бэкенде с учетом настройки режима сохранения
+    const created = await api.createFromArray(func, settings.storageMode)
     const newFunc: TabulatedFunction = {
       ...func,
       id: created.id,
@@ -53,14 +55,36 @@ export function FunctionsProvider({ children }: { children: ReactNode }) {
     return newFunc
   }
 
-  const updateFunction = (id: string, func: TabulatedFunction) => {
-    saveFunctions(functions.map((f) => (f.id === id ? { ...func, id } : f)))
-    api.updateFunction(id, func).catch((err) => console.error("Ошибка обновления функции", err))
+  const updateFunction = async (id: string, func: Partial<TabulatedFunction>) => {
+    const existing = functions.find((f) => f.id === id)
+    if (!existing) throw new Error("Функция не найдена")
+    
+    const updated = { ...existing, ...func, id }
+    saveFunctions(functions.map((f) => (f.id === id ? updated : f)))
+    
+    try {
+      // Обновляем на бэкенде с учетом настройки режима сохранения
+      await api.updateFunction(id, {
+        name: updated.name,
+        type: updated.factoryType,
+        points: updated.points,
+        factoryType: updated.factoryType,
+        storageMode: settings.storageMode,
+      })
+    } catch (err) {
+      console.error("Ошибка обновления функции", err)
+      throw err
+    }
   }
 
-  const deleteFunction = (id: string) => {
-    saveFunctions(functions.filter((f) => f.id !== id))
-    api.deleteFunction(id).catch((err) => console.error("Ошибка удаления функции", err))
+  const deleteFunction = async (id: string) => {
+    try {
+      await api.deleteFunction(id)
+      saveFunctions(functions.filter((f) => f.id !== id))
+    } catch (err) {
+      console.error("Ошибка удаления функции", err)
+      throw err
+    }
   }
 
   const getFunction = (id: string) => {

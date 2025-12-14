@@ -39,7 +39,7 @@ export function FunctionTable({
   }
 
   return (
-    <div className="border rounded-lg overflow-hidden">
+    <div className="border rounded-lg overflow-hidden" role="table" aria-label="Таблица точек функции">
       <div className="overflow-auto" style={{ maxHeight }}>
         <Table>
           <TableHeader className="sticky top-0 bg-card z-10">

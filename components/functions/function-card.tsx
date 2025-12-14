@@ -80,6 +80,7 @@ export function FunctionCard({
       }}
       role="button"
       tabIndex={0}
+      aria-label={`Функция ${name}, ${points.length} точек`}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault()

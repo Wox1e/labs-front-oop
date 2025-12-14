@@ -30,6 +30,7 @@ function GraphsContent() {
   const [showGrid, setShowGrid] = useState(true)
   const [showDots, setShowDots] = useState(true)
   const [graphHeight, setGraphHeight] = useState(400)
+  const [zoom, setZoom] = useState(1.0)
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -95,6 +96,9 @@ function GraphsContent() {
     }
   }
 
+  const handleZoomIn = () => setZoom(z => Math.max(0.2, z * 0.8))
+  const handleZoomOut = () => setZoom(z => Math.min(4, z * 1.25))
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -150,38 +154,34 @@ function GraphsContent() {
                   <CardDescription className="text-xs">Масштабирование и отображение</CardDescription>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-8 w-8 bg-transparent"
-                    onClick={() => setGraphHeight(Math.max(200, graphHeight - 100))}
-                  >
-                    <ZoomOut className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-8 w-8 bg-transparent"
-                    onClick={() => setGraphHeight(Math.min(800, graphHeight + 100))}
-                  >
-                    <ZoomIn className="h-4 w-4" />
-                  </Button>
+                  <Button variant="outline" size="icon" className="h-8 w-8 bg-transparent" onClick={handleZoomOut} aria-label="Уменьшить масштаб" title="Уменьшить масштаб"><ZoomOut className="h-4 w-4" /></Button>
+                  <Button variant="outline" size="icon" className="h-8 w-8 bg-transparent" onClick={handleZoomIn} aria-label="Увеличить масштаб" title="Увеличить масштаб"><ZoomIn className="h-4 w-4" /></Button>
                 </div>
               </div>
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-4 mb-4">
                 <div className="flex items-center space-x-2">
-                  <Checkbox id="grid" checked={showGrid} onCheckedChange={(c) => setShowGrid(!!c)} />
+                  <Checkbox 
+                    id="grid" 
+                    checked={showGrid} 
+                    onCheckedChange={(c) => setShowGrid(!!c)}
+                    aria-label="Показать сетку на графике"
+                  />
                   <Label htmlFor="grid" className="flex items-center gap-1 text-sm cursor-pointer">
-                    <Grid className="h-4 w-4" />
+                    <Grid className="h-4 w-4" aria-hidden="true" />
                     Сетка
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Checkbox id="dots" checked={showDots} onCheckedChange={(c) => setShowDots(!!c)} />
+                  <Checkbox 
+                    id="dots" 
+                    checked={showDots} 
+                    onCheckedChange={(c) => setShowDots(!!c)}
+                    aria-label="Показать точки на графике"
+                  />
                   <Label htmlFor="dots" className="flex items-center gap-1 text-sm cursor-pointer">
-                    <Circle className="h-4 w-4" />
+                    <Circle className="h-4 w-4" aria-hidden="true" />
                     Точки
                   </Label>
                 </div>
@@ -193,7 +193,14 @@ function GraphsContent() {
         {/* Graph */}
         <Card>
           <CardContent className="pt-6">
-            <FunctionGraph functions={selectedFunctions} height={graphHeight} showGrid={showGrid} showDots={showDots} />
+            <FunctionGraph 
+              functions={selectedFunctions} 
+              height={graphHeight} 
+              showGrid={showGrid} 
+              showDots={showDots}
+              highlightPoint={applyResult !== null && selectedFunc ? { x: Number.parseFloat(applyX) || 0, y: applyResult } : null}
+              zoom={zoom}
+            />
           </CardContent>
         </Card>
 
@@ -222,17 +229,29 @@ function GraphsContent() {
                   className="bg-input/50"
                 />
               </div>
-              <Button onClick={handleApply} disabled={!selectedFunc}>
-                <Calculator className="h-4 w-4 mr-1" />
+              <Button 
+                onClick={handleApply} 
+                disabled={!selectedFunc}
+                aria-label="Вычислить значение функции"
+              >
+                <Calculator className="h-4 w-4 mr-1" aria-hidden="true" />
                 Вычислить
               </Button>
             </div>
             {applyResult !== null && (
-              <div className="p-4 rounded-lg bg-primary/10 border border-primary/20">
+              <div 
+                className="p-4 rounded-lg bg-primary/10 border border-primary/20 animate-in fade-in slide-in-from-bottom-2"
+                role="status"
+                aria-live="polite"
+                aria-atomic="true"
+              >
                 <div className="text-sm text-muted-foreground">
                   {selectedFunc?.name}: f({applyX}) =
                 </div>
                 <div className="text-2xl font-bold font-mono text-primary">{applyResult.toFixed(6)}</div>
+                <div className="text-xs text-muted-foreground mt-2">
+                  Точка ({applyX}, {applyResult.toFixed(6)}) отмечена на графике
+                </div>
               </div>
             )}
           </CardContent>

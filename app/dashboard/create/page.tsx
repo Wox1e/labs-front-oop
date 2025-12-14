@@ -111,8 +111,12 @@ function CreateContent() {
               <Badge variant="secondary">{settings.factoryType === "array" ? "Массив" : "Связный список"}</Badge>
             </p>
           </div>
-          <Button variant="outline" onClick={handleImport}>
-            <Upload className="h-4 w-4 mr-2" />
+          <Button 
+            variant="outline" 
+            onClick={handleImport}
+            aria-label="Импортировать функцию из JSON файла"
+          >
+            <Upload className="h-4 w-4 mr-2" aria-hidden="true" />
             Импорт JSON
           </Button>
         </div>
@@ -152,6 +156,7 @@ function CreateContent() {
                     onClick={() => setSelectedFunc(func)}
                     onDelete={() => setDeleteId(func.id!)}
                     onExport={() => handleExport(func)}
+                    onEdit={() => router.push(`/dashboard/edit?id=${func.id}`)}
                     onViewGraph={() => router.push(`/dashboard/graphs?id=${func.id}`)}
                   />
                 ))}
@@ -164,8 +169,13 @@ function CreateContent() {
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">Предпросмотр</h2>
               {selectedFunc && (
-                <Button variant="ghost" size="sm" onClick={() => setShowPoints(!showPoints)}>
-                  {showPoints ? <EyeOff className="h-4 w-4 mr-1" /> : <Eye className="h-4 w-4 mr-1" />}
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setShowPoints(!showPoints)}
+                  aria-label={showPoints ? "Скрыть точки функции" : "Показать точки функции"}
+                >
+                  {showPoints ? <EyeOff className="h-4 w-4 mr-1" aria-hidden="true" /> : <Eye className="h-4 w-4 mr-1" aria-hidden="true" />}
                   {showPoints ? "Скрыть точки" : "Показать точки"}
                 </Button>
               )}

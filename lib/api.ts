@@ -110,8 +110,8 @@ class ApiClient {
     if (result.status !== "success" || !result.user) {
       throw new Error(result.message || "Ошибка логина");
     }
-    // Токен может быть простой basic, или заменить это на токен, если реализуешь
-    const token = btoa(`${username}:${password}`);
+    // Безопасное кодирование для поддержки Unicode (кириллица и т.д.)
+    const token = this.encodeBase64(`${username}:${password}`);
     this.setToken(token);
     this.setUsername(username);
     return {
@@ -140,7 +140,7 @@ class ApiClient {
     }
 
     // Автоматически логиним после регистрации
-    const token = btoa(`${username}:${password}`)
+    const token = this.encodeBase64(`${username}:${password}`)
     this.setToken(token)
     this.setUsername(username)
 
@@ -158,6 +158,13 @@ class ApiClient {
     this.setUsername(null)
   }
 
+  // Безопасное кодирование в Base64 для поддержки Unicode (кириллица и т.д.)
+  private encodeBase64(str: string): string {
+    // Используем безопасный способ для Unicode: сначала кодируем в UTF-8 через encodeURIComponent
+    // затем unescape для получения бинарной строки, которую может обработать btoa
+    return btoa(unescape(encodeURIComponent(str)))
+  }
+
   async getFunctions(type?: string, name?: string) {
     const params = new URLSearchParams()
     if (type) params.append("type", type)
@@ -171,26 +178,22 @@ class ApiClient {
       count: number
     }>(`/functions/${queryString ? `?${queryString}` : ""}`)
   
-    // Используем map и Promise.all для параллельной загрузки точек
-    const functionsList: TabulatedFunction[] = await Promise.all(
-      result.data.map(async (func) => {
-        const rawPoints = await this.getPoints(func.id)
-        
-        const points = rawPoints.map(p => ({
-          x: p.x_value,  // переименовываем
-          y: p.y_value
-        }))
+    // Точки теперь приходят уже внутри функции (восстановленные из полинома)
+    const functionsList: TabulatedFunction[] = result.data.map((func) => {
+      const points = (func.points || []).map((p: any) => ({
+        x: p.x || p.x_value,
+        y: p.y || p.y_value
+      }))
 
-        return {
-          id: func.id,
-          name: func.name,
-          points: points,
-          factoryType: func.type || "array", // Предполагаем, что в func есть тип
-          isInsertable: (func.type || "array") === "linkedList",
-          isRemovable: (func.type || "array") === "linkedList"
-        }
-      })
-    )
+      return {
+        id: func.id,
+        name: func.name,
+        points: points,
+        factoryType: func.type || "array",
+        isInsertable: (func.type || "array") === "linkedList",
+        isRemovable: (func.type || "array") === "linkedList"
+      }
+    })
   
     return functionsList
   }
@@ -207,23 +210,32 @@ class ApiClient {
       throw new Error("Функция не найдена")
     }
 
-    return result.data
+    // Точки теперь приходят уже внутри функции (восстановленные из полинома)
+    const func = result.data
+    return {
+      ...func,
+      points: (func.points || []).map((p: any) => ({
+        x: p.x || p.x_value,
+        y: p.y || p.y_value
+      }))
+    }
   }
 
-  async createFunction(func: TabulatedFunction) {
+  async createFunction(func: TabulatedFunction, storageMode: "pointwise" | "polynomial" = "polynomial") {
+    // Отправляем функцию целиком с точками и режимом сохранения
     const result = await this.request<{
       status: string
       created: boolean
       id: string
     }>("/functions/", {
       method: "POST",
-      body: JSON.stringify({ name:func.name, type:func.factoryType }),
+      body: JSON.stringify({ 
+        name: func.name, 
+        type: func.factoryType,
+        points: func.points.map(p => ({ x: p.x, y: p.y })),
+        storageMode: storageMode
+      }),
     })
-
-    if (func.points.length > 0) {
-      await this.createPointsBulk(result.id, func.points)
-    }
-
 
     return result
   }
@@ -278,14 +290,14 @@ class ApiClient {
 
   // Методы для работы с функциями (создание из массивов и мат. функций)
   // Эти эндпоинты должны быть реализованы на бэкенде
-  async createFromArray(func: TabulatedFunction) {
+  async createFromArray(func: TabulatedFunction, storageMode: "pointwise" | "polynomial" = "polynomial") {
     // Убеждаемся что name и points есть
     if (!func.name || !func.points) {
       throw new Error("Некорректные данные функции")
     }
     
     // Создаем функцию и получаем ID от сервера
-    const funcResult = await this.createFunction(func)
+    const funcResult = await this.createFunction(func, storageMode)
     
     // Возвращаем созданную функцию с ID
     return {
@@ -403,10 +415,18 @@ class ApiClient {
   }
 
   async updateFunction(id: string, data: any) {
-    return this.request<any>(`/functions/${id}`, {
+    // Обновляем функцию целиком с точками и режимом сохранения
+    const result = await this.request<any>(`/functions/${id}`, {
       method: "PUT",
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        name: data.name,
+        type: data.factoryType || data.type,
+        points: data.points ? data.points.map((p: any) => ({ x: p.x, y: p.y })) : undefined,
+        storageMode: data.storageMode || "polynomial",
+      }),
     })
+
+    return result
   }
 
   async insertPoint(id: string, x: number, y: number) {

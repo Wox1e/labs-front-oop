@@ -1,15 +1,15 @@
 "use client"
 
 import { createContext, useContext, useState, type ReactNode, useEffect } from "react"
-import type { FactoryType, AppSettings } from "./types"
+import type { FactoryType, StorageMode, AppSettings } from "./types"
 
 interface SettingsContextType {
   settings: AppSettings
-  setFactoryType: (type: FactoryType) => void
+  setStorageMode: (mode: StorageMode) => void
 }
 
 const defaultSettings: AppSettings = {
-  factoryType: "array",
+  storageMode: "pointwise",
 }
 
 const SettingsContext = createContext<SettingsContextType | null>(null)
@@ -19,31 +19,26 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    console.log("[v0] SettingsProvider mounted")
     setMounted(true)
     const saved = localStorage.getItem("app_settings")
     if (saved) {
       try {
         setSettings(JSON.parse(saved))
-      } catch {
-        // ignore
-      }
+      } catch {}
     }
   }, [])
 
-  const setFactoryType = (type: FactoryType) => {
-    const newSettings = { ...settings, factoryType: type }
+  const setStorageMode = (mode: StorageMode) => {
+    const newSettings = { ...settings, storageMode: mode }
     setSettings(newSettings)
     if (typeof window !== "undefined") {
       localStorage.setItem("app_settings", JSON.stringify(newSettings))
     }
   }
 
-  if (!mounted) {
-    return null
-  }
+  if (!mounted) return null
 
-  return <SettingsContext.Provider value={{ settings, setFactoryType }}>{children}</SettingsContext.Provider>
+  return <SettingsContext.Provider value={{ settings, setStorageMode }}>{children}</SettingsContext.Provider>
 }
 
 export function useSettings() {

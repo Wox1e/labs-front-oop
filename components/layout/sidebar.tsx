@@ -5,13 +5,14 @@ import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { useAuth } from "@/lib/auth-context"
 import { Button } from "@/components/ui/button"
-import { Home, PlusCircle, LineChart, LogOut, Menu, X } from "lucide-react"
+import { Home, PlusCircle, LineChart, LogOut, Menu, X, Settings } from "lucide-react"
 import { useState } from "react"
 
 const navigation = [
   { name: "Главная", href: "/dashboard", icon: Home },
   { name: "Создать функцию", href: "/dashboard/create", icon: PlusCircle },
   { name: "Графики", href: "/dashboard/graphs", icon: LineChart },
+  { name: "Настройки", href: "/dashboard/settings", icon: Settings },
 ]
 
 export function Sidebar() {
@@ -27,8 +28,10 @@ export function Sidebar() {
         size="icon"
         className="fixed top-4 left-4 z-50 lg:hidden"
         onClick={() => setMobileOpen(!mobileOpen)}
+        aria-label={mobileOpen ? "Закрыть меню" : "Открыть меню"}
+        aria-expanded={mobileOpen}
       >
-        {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        {mobileOpen ? <X className="h-5 w-5" aria-hidden="true" /> : <Menu className="h-5 w-5" aria-hidden="true" />}
       </Button>
 
       {/* Overlay */}
@@ -46,6 +49,7 @@ export function Sidebar() {
           "lg:translate-x-0",
           mobileOpen ? "translate-x-0" : "-translate-x-full",
         )}
+        aria-label="Основная навигация"
       >
         <div className="flex h-full flex-col">
           {/* Logo */}
@@ -57,7 +61,7 @@ export function Sidebar() {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 space-y-1 px-3 py-4 overflow-y-auto">
+          <nav className="flex-1 space-y-1 px-3 py-4 overflow-y-auto" aria-label="Навигация по разделам">
             {navigation.map((item) => {
               const isActive = pathname === item.href
               return (

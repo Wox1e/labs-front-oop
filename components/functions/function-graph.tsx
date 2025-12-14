@@ -9,6 +9,8 @@ interface FunctionGraphProps {
   height?: number
   showGrid?: boolean
   showDots?: boolean
+  highlightPoint?: { x: number; y: number } | null
+  zoom?: number // новее
 }
 
 const colors = [
@@ -19,7 +21,7 @@ const colors = [
   "#f97316", // orange
 ]
 
-export function FunctionGraph({ functions, height = 400, showGrid = true, showDots = true }: FunctionGraphProps) {
+export function FunctionGraph({ functions, height = 400, showGrid = true, showDots = true, highlightPoint, zoom = 1 }: FunctionGraphProps) {
   const chartData = useMemo(() => {
     if (functions.length === 0) return []
 
@@ -45,19 +47,37 @@ export function FunctionGraph({ functions, height = 400, showGrid = true, showDo
     })
   }, [functions])
 
-  const { minY, maxY } = useMemo(() => {
-    if (functions.length === 0) return { minY: -1, maxY: 1 }
-    let min = Number.POSITIVE_INFINITY
-    let max = Number.NEGATIVE_INFINITY
+  const { minY, maxY, minX, maxX } = useMemo(() => {
+    if (functions.length === 0) return { minY: -1, maxY: 1, minX: -1, maxX: 1 }
+    let minY = Number.POSITIVE_INFINITY
+    let maxY = Number.NEGATIVE_INFINITY
+    let minX = Number.POSITIVE_INFINITY
+    let maxX = Number.NEGATIVE_INFINITY
     for (const func of functions) {
       for (const point of func.points) {
-        min = Math.min(min, point.y)
-        max = Math.max(max, point.y)
+        minY = Math.min(minY, point.y)
+        maxY = Math.max(maxY, point.y)
+        minX = Math.min(minX, point.x)
+        maxX = Math.max(maxX, point.x)
       }
     }
-    const padding = (max - min) * 0.1 || 1
-    return { minY: min - padding, maxY: max + padding }
-  }, [functions])
+    // padding как раньше
+    const paddingY = (maxY - minY) * 0.1 || 1
+    const paddingX = (maxX - minX) * 0.05 || 0.1
+    // zoom: range становится меньше при zoom < 1
+    let rangeY = (maxY - minY + 2 * paddingY)
+    let rangeX = (maxX - minX + 2 * paddingX)
+    const centerY = (maxY + minY) / 2
+    const centerX = (maxX + minX) / 2
+    const zoomedRangeY = rangeY * zoom
+    const zoomedRangeX = rangeX * zoom
+    return {
+      minY: centerY - zoomedRangeY / 2,
+      maxY: centerY + zoomedRangeY / 2,
+      minX: centerX - zoomedRangeX / 2,
+      maxX: centerX + zoomedRangeX / 2,
+    }
+  }, [functions, zoom])
 
   if (functions.length === 0) {
     return (
@@ -72,10 +92,27 @@ export function FunctionGraph({ functions, height = 400, showGrid = true, showDo
 
   return (
     <ResponsiveContainer width="100%" height={height}>
-      <LineChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
-        {showGrid && <CartesianGrid strokeDasharray="3 3" stroke="#374151" />}
-        <XAxis dataKey="x" stroke="#9ca3af" fontSize={12} tickFormatter={(value) => value.toFixed(2)} />
-        <YAxis domain={[minY, maxY]} stroke="#9ca3af" fontSize={12} tickFormatter={(value) => value.toFixed(2)} />
+      <LineChart 
+        data={chartData} 
+        margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+        aria-label="График табулированных функций"
+      >
+        {showGrid && <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.3} />}
+        <XAxis 
+          dataKey="x" 
+          stroke="#9ca3af" 
+          fontSize={12} 
+          tickFormatter={(value) => value.toFixed(2)}
+          domain={[minX, maxX]}
+          label={{ value: "X", position: "insideBottom", offset: -5, style: { fill: "#9ca3af" } }}
+        />
+        <YAxis 
+          domain={[minY, maxY]} 
+          stroke="#9ca3af" 
+          fontSize={12} 
+          tickFormatter={(value) => value.toFixed(2)}
+          label={{ value: "Y", angle: -90, position: "insideLeft", style: { fill: "#9ca3af" } }}
+        />
         <Tooltip
           contentStyle={{
             backgroundColor: "#1f2937",
@@ -89,7 +126,26 @@ export function FunctionGraph({ functions, height = 400, showGrid = true, showDo
           }}
           labelFormatter={(label: number) => `x = ${label.toFixed(4)}`}
         />
-        <ReferenceLine y={0} stroke="#6b7280" strokeDasharray="2 2" />
+        <ReferenceLine y={0} stroke="#6b7280" strokeDasharray="2 2" strokeOpacity={0.5} />
+        <ReferenceLine x={0} stroke="#6b7280" strokeDasharray="2 2" strokeOpacity={0.5} />
+        {highlightPoint && (
+          <>
+            <ReferenceLine 
+              x={highlightPoint.x} 
+              stroke="#ef4444" 
+              strokeDasharray="3 3" 
+              strokeOpacity={0.6}
+              label={{ value: `x=${highlightPoint.x.toFixed(2)}`, position: "top" }}
+            />
+            <ReferenceLine 
+              y={highlightPoint.y} 
+              stroke="#ef4444" 
+              strokeDasharray="3 3" 
+              strokeOpacity={0.6}
+              label={{ value: `y=${highlightPoint.y.toFixed(2)}`, position: "right" }}
+            />
+          </>
+        )}
         {functions.map((func, index) => (
           <Line
             key={func.id || index}

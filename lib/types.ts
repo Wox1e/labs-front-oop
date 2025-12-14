@@ -9,7 +9,6 @@ export interface TabulatedFunction {
   id?: string
   name: string
   points: Point[]
-  factoryType: "array" | "linkedList"
   isInsertable?: boolean
   isRemovable?: boolean
 }
@@ -55,8 +54,8 @@ export interface ApiError {
   status: number
 }
 
-export type FactoryType = "array" | "linkedList"
+export type StorageMode = "pointwise" | "polynomial"
 
 export interface AppSettings {
-  factoryType: FactoryType
+  storageMode: StorageMode
 }
