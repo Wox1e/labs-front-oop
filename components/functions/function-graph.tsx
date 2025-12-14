@@ -111,7 +111,10 @@ export function FunctionGraph({ functions, height = 400, showGrid = true, showDo
           dataKey="x" 
           stroke="#9ca3af" 
           fontSize={12} 
-          tickFormatter={(value) => value.toFixed(2)}
+          tickFormatter={(value: number | string) => {
+            const numValue = typeof value === "number" ? value : Number.parseFloat(String(value))
+            return (numValue != null && !Number.isNaN(numValue) && Number.isFinite(numValue) ? numValue.toFixed(2) : "")
+          }}
           domain={[minX, maxX]}
           label={{ value: "X", position: "insideBottom", offset: -5, style: { fill: "#9ca3af" } }}
         />
@@ -119,7 +122,10 @@ export function FunctionGraph({ functions, height = 400, showGrid = true, showDo
           domain={[minY, maxY]} 
           stroke="#9ca3af" 
           fontSize={12} 
-          tickFormatter={(value) => value.toFixed(2)}
+          tickFormatter={(value: number | string) => {
+            const numValue = typeof value === "number" ? value : Number.parseFloat(String(value))
+            return (numValue != null && !Number.isNaN(numValue) && Number.isFinite(numValue) ? numValue.toFixed(2) : "")
+          }}
           label={{ value: "Y", angle: -90, position: "insideLeft", style: { fill: "#9ca3af" } }}
         />
         <Tooltip
@@ -129,29 +135,37 @@ export function FunctionGraph({ functions, height = 400, showGrid = true, showDo
             borderRadius: "8px",
             color: "#f3f4f6",
           }}
-          formatter={(value: number, name: string) => {
+          formatter={(value: number | undefined, name: string) => {
+            if (value == null || typeof value !== "number" || !Number.isFinite(value)) {
+              return ["—", name]
+            }
             const index = Number.parseInt(name.replace("y", ""))
             return [value.toFixed(4), functions[index]?.name || name]
           }}
-          labelFormatter={(label: number) => `x = ${label.toFixed(4)}`}
+          labelFormatter={(label: number | undefined) => {
+            if (label == null || typeof label !== "number" || !Number.isFinite(label)) {
+              return "x = —"
+            }
+            return `x = ${label.toFixed(4)}`
+          }}
         />
         <ReferenceLine y={0} stroke="#6b7280" strokeDasharray="2 2" strokeOpacity={0.5} />
         <ReferenceLine x={0} stroke="#6b7280" strokeDasharray="2 2" strokeOpacity={0.5} />
-        {highlightPoint && (
+        {highlightPoint && highlightPoint.x != null && highlightPoint.y != null && (
           <>
             <ReferenceLine 
               x={highlightPoint.x} 
               stroke="#ef4444" 
               strokeDasharray="3 3" 
               strokeOpacity={0.6}
-              label={{ value: `x=${highlightPoint.x.toFixed(2)}`, position: "top" }}
+              label={{ value: `x=${typeof highlightPoint.x === "number" ? highlightPoint.x.toFixed(2) : "—"}`, position: "top" }}
             />
             <ReferenceLine 
               y={highlightPoint.y} 
               stroke="#ef4444" 
               strokeDasharray="3 3" 
               strokeOpacity={0.6}
-              label={{ value: `y=${highlightPoint.y.toFixed(2)}`, position: "right" }}
+              label={{ value: `y=${typeof highlightPoint.y === "number" ? highlightPoint.y.toFixed(2) : "—"}`, position: "right" }}
             />
           </>
         )}

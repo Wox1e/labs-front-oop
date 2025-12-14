@@ -95,7 +95,11 @@ export function FunctionCard({
           <div className="flex-1 min-w-0">
             <CardTitle className="text-base truncate">{name}</CardTitle>
             <CardDescription className="text-xs mt-1">
-              {points.length} точек • [{minX.toFixed(2)}, {maxX.toFixed(2)}]
+              {points.length} точек • [
+              {typeof minX === "number" && Number.isFinite(minX) ? minX.toFixed(2) : "—"}, 
+              {", "}
+              {typeof maxX === "number" && Number.isFinite(maxX) ? maxX.toFixed(2) : "—"}
+              ]
             </CardDescription>
           </div>
           <DropdownMenu>

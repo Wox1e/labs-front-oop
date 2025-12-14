@@ -74,7 +74,11 @@ export function FunctionTable({
                         className="w-full text-center bg-input/50"
                       />
                     ) : (
-                      <div className="text-center font-mono">{point.x.toFixed(4)}</div>
+                      <div className="text-center font-mono">
+                        {point.x != null && typeof point.x === "number" && Number.isFinite(point.x) 
+                          ? point.x.toFixed(4) 
+                          : "—"}
+                      </div>
                     )}
                   </TableCell>
                   <TableCell>
@@ -87,7 +91,11 @@ export function FunctionTable({
                         className="w-full text-center bg-input/50"
                       />
                     ) : (
-                      <div className="text-center font-mono">{point.y.toFixed(4)}</div>
+                      <div className="text-center font-mono">
+                        {point.y != null && typeof point.y === "number" && Number.isFinite(point.y) 
+                          ? point.y.toFixed(4) 
+                          : "—"}
+                      </div>
                     )}
                   </TableCell>
                   {(showDelete || showInsert) && (

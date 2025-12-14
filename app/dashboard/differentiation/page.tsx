@@ -242,7 +242,7 @@ function DifferentiationContent() {
                 )}
                 Вычислить интеграл
               </Button>
-              {integralResult !== null && (
+              {integralResult !== null && typeof integralResult === "number" && Number.isFinite(integralResult) && (
                 <div className="p-4 rounded-lg bg-primary/10 border border-primary/20">
                   <div className="text-sm text-muted-foreground">Результат интегрирования:</div>
                   <div className="text-2xl font-bold font-mono text-primary">{integralResult.toFixed(6)}</div>
