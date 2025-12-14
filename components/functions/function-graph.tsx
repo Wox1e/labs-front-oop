@@ -22,6 +22,15 @@ const colors = [
 ]
 
 export function FunctionGraph({ functions, height = 400, showGrid = true, showDots = true, highlightPoint, zoom = 1 }: FunctionGraphProps) {
+  // Проверяем, что у КАЖДОЙ функции есть минимум 2 точки — если нет, не пытаемся строить график
+  if (!Array.isArray(functions) || functions.length === 0 || functions.some(fn => !Array.isArray(fn.points) || fn.points.length < 2)) {
+    return (
+      <div className="flex items-center justify-center border rounded-lg border-dashed text-muted-foreground" style={{ height }}>
+        Недостаточно точек для построения графика (нужно минимум 2)
+      </div>
+    )
+  }
+
   const chartData = useMemo(() => {
     if (functions.length === 0) return []
 
