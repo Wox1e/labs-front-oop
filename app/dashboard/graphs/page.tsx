@@ -116,8 +116,10 @@ function GraphsContent() {
                         onClick={(e) => e.stopPropagation()}
                       />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{func.name}</p>
-                        <p className="text-xs text-muted-foreground">{func.points.length} точек</p>
+                        <p className="text-sm font-medium truncate">{func.name || "Без названия"}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {func.points && Array.isArray(func.points) ? func.points.length : 0} точек
+                        </p>
                       </div>
                     </div>
                   ))}

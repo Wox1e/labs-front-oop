@@ -41,35 +41,39 @@ function OperationsContent() {
   }
 
   const handlePointChange1 = (index: number, field: "x" | "y", value: number) => {
-    if (!func1) return
+    if (!func1 || !func1.points || !Array.isArray(func1.points)) return
     const newPoints = [...func1.points]
-    newPoints[index] = { ...newPoints[index], [field]: value }
-    setFunc1({ ...func1, points: newPoints })
+    if (index >= 0 && index < newPoints.length && newPoints[index]) {
+      newPoints[index] = { ...newPoints[index], [field]: value }
+      setFunc1({ ...func1, points: newPoints })
+    }
   }
 
   const handlePointChange2 = (index: number, field: "x" | "y", value: number) => {
-    if (!func2) return
+    if (!func2 || !func2.points || !Array.isArray(func2.points)) return
     const newPoints = [...func2.points]
-    newPoints[index] = { ...newPoints[index], [field]: value }
-    setFunc2({ ...func2, points: newPoints })
+    if (index >= 0 && index < newPoints.length && newPoints[index]) {
+      newPoints[index] = { ...newPoints[index], [field]: value }
+      setFunc2({ ...func2, points: newPoints })
+    }
   }
 
   const handleInsertPoint1 = (x: number, y: number) => {
-    if (!func1) return
+    if (!func1 || !func1.points || !Array.isArray(func1.points)) return
     const newPoints = [...func1.points, { x, y }].sort((a, b) => a.x - b.x)
     setFunc1({ ...func1, points: newPoints })
     toast.success("Точка добавлена")
   }
 
   const handleInsertPoint2 = (x: number, y: number) => {
-    if (!func2) return
+    if (!func2 || !func2.points || !Array.isArray(func2.points)) return
     const newPoints = [...func2.points, { x, y }].sort((a, b) => a.x - b.x)
     setFunc2({ ...func2, points: newPoints })
     toast.success("Точка добавлена")
   }
 
   const handleRemovePoint1 = (index: number) => {
-    if (!func1 || func1.points.length <= 2) {
+    if (!func1 || !func1.points || !Array.isArray(func1.points) || func1.points.length <= 2) {
       toast.error("Минимум 2 точки")
       return
     }
@@ -79,7 +83,7 @@ function OperationsContent() {
   }
 
   const handleRemovePoint2 = (index: number) => {
-    if (!func2 || func2.points.length <= 2) {
+    if (!func2 || !func2.points || !Array.isArray(func2.points) || func2.points.length <= 2) {
       toast.error("Минимум 2 точки")
       return
     }

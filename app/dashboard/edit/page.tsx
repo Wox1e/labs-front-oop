@@ -80,18 +80,20 @@ function EditContent() {
   }
 
   const handlePointChange = (index: number, field: "x" | "y", value: number) => {
-    if (!func) return
-    const newPoints = [...func.points]
+    if (!func || !func.points || !Array.isArray(func.points)) return
     if (field === "x") {
       // X не редактируется, но для совместимости оставляем
       return
     }
-    newPoints[index] = { ...newPoints[index], [field]: value }
-    setFunc({ ...func, points: newPoints })
+    const newPoints = [...func.points]
+    if (index >= 0 && index < newPoints.length && newPoints[index]) {
+      newPoints[index] = { ...newPoints[index], [field]: value }
+      setFunc({ ...func, points: newPoints })
+    }
   }
 
   const handleInsertPoint = () => {
-    if (!func) return
+    if (!func || !func.points || !Array.isArray(func.points)) return
     const x = Number.parseFloat(newPointX)
     const y = Number.parseFloat(newPointY)
 
@@ -117,7 +119,7 @@ function EditContent() {
   }
 
   const handleRemovePoint = (index: number) => {
-    if (!func || func.points.length <= 2) {
+    if (!func || !func.points || !Array.isArray(func.points) || func.points.length <= 2) {
       toast.error("Минимум 2 точки")
       return
     }
@@ -127,7 +129,7 @@ function EditContent() {
   }
 
   const handleSave = async () => {
-    if (!func || !name.trim()) {
+    if (!func || !func.points || !Array.isArray(func.points) || !name.trim()) {
       toast.error("Введите название функции")
       return
     }

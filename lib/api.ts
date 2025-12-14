@@ -241,6 +241,10 @@ class ApiClient {
 
   async createFunction(func: TabulatedFunction, storageMode: "pointwise" | "polynomial" = "polynomial") {
     // Передаём type: 'array' всегда (заглушка для бэка)
+    if (!func || !func.points || !Array.isArray(func.points)) {
+      throw new Error("Некорректные данные функции: отсутствуют точки")
+    }
+    
     const result = await this.request<{
       status: string
       created: boolean
@@ -248,9 +252,12 @@ class ApiClient {
     }>("/functions/", {
       method: "POST",
       body: JSON.stringify({ 
-        name: func.name, 
+        name: func.name || "Без названия", 
         type: "array",
-        points: func.points.map(p => ({ x: p.x, y: p.y })),
+        points: func.points
+          .filter(p => p != null && typeof p.x === "number" && typeof p.y === "number" && 
+                       Number.isFinite(p.x) && Number.isFinite(p.y))
+          .map(p => ({ x: p.x, y: p.y })),
         storageMode: storageMode
       }),
     })

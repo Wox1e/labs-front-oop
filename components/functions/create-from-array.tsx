@@ -49,9 +49,12 @@ export function CreateFromArray({ onCreated, trigger }: CreateFromArrayProps) {
   }
 
   const handlePointChange = (index: number, field: "x" | "y", value: number) => {
+    if (!Array.isArray(points) || index < 0 || index >= points.length) return
     const newPoints = [...points]
-    newPoints[index] = { ...newPoints[index], [field]: value }
-    setPoints(newPoints)
+    if (newPoints[index]) {
+      newPoints[index] = { ...newPoints[index], [field]: value }
+      setPoints(newPoints)
+    }
   }
 
   const handleCreate = async () => {

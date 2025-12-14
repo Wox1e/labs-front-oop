@@ -36,8 +36,12 @@ export function FunctionGraph({ functions, height = 400, showGrid = true, showDo
 
     const allX = new Set<number>()
     for (const func of functions) {
-      for (const point of func.points) {
-        allX.add(point.x)
+      if (func && func.points && Array.isArray(func.points)) {
+        for (const point of func.points) {
+          if (point && typeof point.x === "number" && Number.isFinite(point.x)) {
+            allX.add(point.x)
+          }
+        }
       }
     }
 
@@ -47,9 +51,11 @@ export function FunctionGraph({ functions, height = 400, showGrid = true, showDo
       const dataPoint: Record<string, number> = { x }
       for (let i = 0; i < functions.length; i++) {
         const func = functions[i]
-        const point = func.points.find((p) => p.x === x)
-        if (point) {
-          dataPoint[`y${i}`] = point.y
+        if (func && func.points && Array.isArray(func.points)) {
+          const point = func.points.find((p) => p && typeof p.x === "number" && p.x === x)
+          if (point && typeof point.y === "number" && Number.isFinite(point.y)) {
+            dataPoint[`y${i}`] = point.y
+          }
         }
       }
       return dataPoint
@@ -63,13 +69,24 @@ export function FunctionGraph({ functions, height = 400, showGrid = true, showDo
     let minX = Number.POSITIVE_INFINITY
     let maxX = Number.NEGATIVE_INFINITY
     for (const func of functions) {
-      for (const point of func.points) {
-        minY = Math.min(minY, point.y)
-        maxY = Math.max(maxY, point.y)
-        minX = Math.min(minX, point.x)
-        maxX = Math.max(maxX, point.x)
+      if (func && func.points && Array.isArray(func.points)) {
+        for (const point of func.points) {
+          if (point && typeof point.x === "number" && typeof point.y === "number" && 
+              Number.isFinite(point.x) && Number.isFinite(point.y)) {
+            minY = Math.min(minY, point.y)
+            maxY = Math.max(maxY, point.y)
+            minX = Math.min(minX, point.x)
+            maxX = Math.max(maxX, point.x)
+          }
+        }
       }
     }
+    
+    // Если не нашли валидных точек, возвращаем дефолтные значения
+    if (!Number.isFinite(minY) || !Number.isFinite(maxY) || !Number.isFinite(minX) || !Number.isFinite(maxX)) {
+      return { minY: -1, maxY: 1, minX: -1, maxX: 1 }
+    }
+    
     // padding как раньше
     const paddingY = (maxY - minY) * 0.1 || 1
     const paddingX = (maxX - minX) * 0.05 || 0.1
@@ -80,21 +97,30 @@ export function FunctionGraph({ functions, height = 400, showGrid = true, showDo
     const centerX = (maxX + minX) / 2
     const zoomedRangeY = rangeY * zoom
     const zoomedRangeX = rangeX * zoom
-    return {
+    
+    const result = {
       minY: centerY - zoomedRangeY / 2,
       maxY: centerY + zoomedRangeY / 2,
       minX: centerX - zoomedRangeX / 2,
       maxX: centerX + zoomedRangeX / 2,
     }
+    
+    // Финальная проверка - убеждаемся, что все значения конечные
+    if (!Number.isFinite(result.minY) || !Number.isFinite(result.maxY) || 
+        !Number.isFinite(result.minX) || !Number.isFinite(result.maxX)) {
+      return { minY: -1, maxY: 1, minX: -1, maxX: 1 }
+    }
+    
+    return result
   }, [functions, zoom])
 
-  if (functions.length === 0) {
+  if (functions.length === 0 || chartData.length === 0) {
     return (
       <div
         className="flex items-center justify-center border rounded-lg border-dashed text-muted-foreground"
         style={{ height }}
       >
-        Нет функций для отображения
+        {functions.length === 0 ? "Нет функций для отображения" : "Недостаточно данных для построения графика"}
       </div>
     )
   }
@@ -115,11 +141,11 @@ export function FunctionGraph({ functions, height = 400, showGrid = true, showDo
             const numValue = typeof value === "number" ? value : Number.parseFloat(String(value))
             return (numValue != null && !Number.isNaN(numValue) && Number.isFinite(numValue) ? numValue.toFixed(2) : "")
           }}
-          domain={[minX, maxX]}
+          domain={Number.isFinite(minX) && Number.isFinite(maxX) ? [minX, maxX] : ["auto", "auto"]}
           label={{ value: "X", position: "insideBottom", offset: -5, style: { fill: "#9ca3af" } }}
         />
         <YAxis 
-          domain={[minY, maxY]} 
+          domain={Number.isFinite(minY) && Number.isFinite(maxY) ? [minY, maxY] : ["auto", "auto"]} 
           stroke="#9ca3af" 
           fontSize={12} 
           tickFormatter={(value: number | string) => {
@@ -137,10 +163,14 @@ export function FunctionGraph({ functions, height = 400, showGrid = true, showDo
           }}
           formatter={(value: number | undefined, name: string) => {
             if (value == null || typeof value !== "number" || !Number.isFinite(value)) {
-              return ["—", name]
+              return ["—", name || ""]
             }
-            const index = Number.parseInt(name.replace("y", ""))
-            return [value.toFixed(4), functions[index]?.name || name]
+            const indexStr = String(name || "").replace("y", "")
+            const index = indexStr ? Number.parseInt(indexStr, 10) : -1
+            if (index >= 0 && index < functions.length && functions[index]) {
+              return [value.toFixed(4), functions[index].name || name || ""]
+            }
+            return [value.toFixed(4), name || ""]
           }}
           labelFormatter={(label: number | undefined) => {
             if (label == null || typeof label !== "number" || !Number.isFinite(label)) {
@@ -174,7 +204,7 @@ export function FunctionGraph({ functions, height = 400, showGrid = true, showDo
             key={func.id || index}
             type="linear"
             dataKey={`y${index}`}
-            name={func.name}
+            name={func?.name || `Функция ${index + 1}`}
             stroke={colors[index % colors.length]}
             strokeWidth={2}
             dot={showDots ? { r: 4, fill: colors[index % colors.length] } : false}
