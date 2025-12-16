@@ -31,12 +31,37 @@ export function FunctionTable({
   showDelete = false,
   maxHeight = "400px",
 }: FunctionTableProps) {
+  // Для надёжного редактирования дробных/отрицательных чисел используем local input state
+  const [inputValues, setInputValues] = React.useState(() =>
+    points.map((pt) => ({ x: pt.x.toString(), y: pt.y.toString() }))
+  );
+
+  React.useEffect(() => {
+    setInputValues(points.map((pt) => ({ x: pt.x.toString(), y: pt.y.toString() })))
+  }, [points]);
+
   const handleChange = (index: number, field: "x" | "y", e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = Number.parseFloat(e.target.value)
-    if (!Number.isNaN(value) && onPointChange) {
-      onPointChange(index, field, value)
-    }
+    const newValues = [...inputValues];
+    newValues[index] = { ...newValues[index], [field]: e.target.value };
+    setInputValues(newValues);
   }
+  const handleBlur = (index: number, field: "x" | "y") => {
+    if (!onPointChange) return;
+    const str = inputValues[index][field];
+    // accept empty or just '-' or '.' as "no change"
+    if (str.trim() === '' || str === '-' || str === '.' || str === '-.') return;
+    const value = Number.parseFloat(str);
+    if (!Number.isNaN(value)) {
+      onPointChange(index, field, value);
+    } else {
+      // reset to last valid if broke
+      setInputValues((prev) => {
+        const copy = [...prev];
+        copy[index][field] = points[index][field].toString();
+        return copy;
+      });
+    }
+  };
 
   return (
     <div className="border rounded-lg overflow-hidden" role="table" aria-label="Таблица точек функции">
@@ -67,11 +92,16 @@ export function FunctionTable({
                   <TableCell>
                     {editableX && editable ? (
                       <Input
-                        type="number"
-                        step="any"
-                        value={point.x}
+                        type="text"
+                        inputMode="decimal"
+                        value={inputValues[index]?.x ?? ''}
                         onChange={(e) => handleChange(index, "x", e)}
+                        onBlur={() => handleBlur(index, "x")}
                         className="w-full text-center bg-input/50"
+                        autoCorrect="off"
+                        autoComplete="off"
+                        spellCheck={false}
+                        pattern="^-?\\d*[\\.,]?\\d*$"
                       />
                     ) : (
                       <div className="text-center font-mono">{point.x.toFixed(4)}</div>
@@ -80,11 +110,16 @@ export function FunctionTable({
                   <TableCell>
                     {editable ? (
                       <Input
-                        type="number"
-                        step="any"
-                        value={point.y}
+                        type="text"
+                        inputMode="decimal"
+                        value={inputValues[index]?.y ?? ''}
                         onChange={(e) => handleChange(index, "y", e)}
+                        onBlur={() => handleBlur(index, "y")}
                         className="w-full text-center bg-input/50"
+                        autoCorrect="off"
+                        autoComplete="off"
+                        spellCheck={false}
+                        pattern="^-?\\d*[\\.,]?\\d*$"
                       />
                     ) : (
                       <div className="text-center font-mono">{point.y.toFixed(4)}</div>
@@ -130,8 +165,8 @@ function InsertPointForm({ onInsert }: { onInsert: (x: number, y: number) => voi
 
   return (
     <form onSubmit={handleSubmit} className="flex items-center gap-2">
-      <Input type="number" step="any" name="x" placeholder="X" className="w-24 bg-input/50" required />
-      <Input type="number" step="any" name="y" placeholder="Y" className="w-24 bg-input/50" required />
+      <Input type="text" name="x" inputMode="decimal" pattern="^-?\\d*[\\.,]?\\d*$" placeholder="X" className="w-24 bg-input/50" autoCorrect="off" autoComplete="off" spellCheck={false} required />
+      <Input type="text" name="y" inputMode="decimal" pattern="^-?\\d*[\\.,]?\\d*$" placeholder="Y" className="w-24 bg-input/50" autoCorrect="off" autoComplete="off" spellCheck={false} required />
       <Button type="submit" size="sm" variant="outline">
         <Plus className="h-4 w-4 mr-1" />
         Добавить
