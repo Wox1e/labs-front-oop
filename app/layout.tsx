@@ -9,7 +9,7 @@ const _geist = Geist({ subsets: ["latin"] })
 const _geistMono = Geist_Mono({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "FuncLab - Табулированные функции",
+  title: "7 грехов ООП",
   description: "Веб-приложение для работы с табулированными функциями",
   generator: "v0.app",
 }

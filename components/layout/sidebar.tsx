@@ -57,7 +57,7 @@ export function Sidebar() {
             <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
               <span className="text-lg font-bold text-primary">ƒ</span>
             </div>
-            <span className="text-lg font-semibold text-sidebar-foreground">FuncLab</span>
+            <span className="text-lg font-semibold text-sidebar-foreground">Семеро по графикам</span>
           </div>
 
           {/* Navigation */}
