@@ -1,6 +1,6 @@
 "use client"
 
-import type React from "react"
+import React, { useState, useEffect } from "react"
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
@@ -32,11 +32,11 @@ export function FunctionTable({
   maxHeight = "400px",
 }: FunctionTableProps) {
   // Для надёжного редактирования дробных/отрицательных чисел используем local input state
-  const [inputValues, setInputValues] = React.useState(() =>
+  const [inputValues, setInputValues] = useState(() =>
     points.map((pt) => ({ x: pt.x.toString(), y: pt.y.toString() }))
   );
 
-  React.useEffect(() => {
+  useEffect(() => {
     setInputValues(points.map((pt) => ({ x: pt.x.toString(), y: pt.y.toString() })))
   }, [points]);
 
