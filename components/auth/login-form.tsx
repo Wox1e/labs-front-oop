@@ -48,7 +48,7 @@ export function LoginForm({ onSwitchToRegister }: LoginFormProps) {
             <span className="text-2xl font-bold text-primary">ƒ</span>
           </div>
         </div>
-        <CardTitle className="text-2xl font-bold">Вход в FuncLab</CardTitle>
+        <CardTitle className="text-2xl font-bold">Вход в Лабу</CardTitle>
         <CardDescription>Введите ваши данные для входа в систему</CardDescription>
       </CardHeader>
       <CardContent>
