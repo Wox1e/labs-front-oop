@@ -20,6 +20,8 @@ interface FunctionTableProps {
   maxHeight?: string
 }
 
+import { toast } from "sonner"
+
 export function FunctionTable({
   points,
   onPointChange,
@@ -40,6 +42,10 @@ export function FunctionTable({
     setInputValues(points.map((pt) => ({ x: pt.x.toString(), y: pt.y.toString() })))
   }, [points]);
 
+  function toastError() {
+    toast.error("Введите корректное число")
+  }
+
   const handleChange = (index: number, field: "x" | "y", e: React.ChangeEvent<HTMLInputElement>) => {
     const newValues = [...inputValues];
     newValues[index] = { ...newValues[index], [field]: e.target.value };
@@ -49,12 +55,20 @@ export function FunctionTable({
     if (!onPointChange) return;
     const str = inputValues[index][field];
     // accept empty or just '-' or '.' as "no change"
-    if (str.trim() === '' || str === '-' || str === '.' || str === '-.') return;
+    if (str.trim() === '' || str === '-' || str === '.' || str === '-.') {
+      toastError();
+      setInputValues((prev) => {
+        const copy = [...prev];
+        copy[index][field] = points[index][field].toString();
+        return copy;
+      });
+      return;
+    }
     const value = Number.parseFloat(str);
     if (!Number.isNaN(value)) {
       onPointChange(index, field, value);
     } else {
-      // reset to last valid if broke
+      toastError();
       setInputValues((prev) => {
         const copy = [...prev];
         copy[index][field] = points[index][field].toString();
